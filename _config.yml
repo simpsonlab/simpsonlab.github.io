@@ -1,0 +1,31 @@
+# Dependencies
+markdown:         redcarpet
+highlighter:      pygments
+
+# Permalinks
+permalink:        pretty
+relative_permalinks: true
+
+# Setup
+title:            Simpson Lab Blog
+tagline:          'SimpsonLab blog'
+description:      'A blog for the Simpson Lab at the Ontario Institute for Cancer Research'
+url:              http://hyde.getpoole.com
+baseurl:          /
+
+author:
+  name:           'Jared Simpson'
+  url:            https://twitter.com/jaredtsimpson
+
+paginate:         5
+
+# Custom vars
+version:          1.0
+markdown:         kramdown
+
+pages_list:       
+  About: '/about'
+  Archive: '/archive'
+
+github:
+  repo:           https://github.com/simpsonlab/simpsonlab.github.io
