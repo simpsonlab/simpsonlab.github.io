@@ -27,5 +27,9 @@ pages_list:
   About: '/about'
   Archive: '/archive'
 
+authors:
+    jared:
+        display_name: Jared Simpson
+
 github:
   repo:           https://github.com/simpsonlab/simpsonlab.github.io
