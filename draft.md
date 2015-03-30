@@ -1,12 +1,12 @@
 ---
-layout: page
-title: Archive
+layout: default
+title: Draft
 ---
 
-## Blog Posts
+## Draft Blog Posts
 
 {% for post in site.posts %}
- {% unless post.draft %}
+  {% if post.draft %}
   * {{ post.date | date_to_string }} &raquo; [ {{ post.title }} ]({{ post.url }})
- {% endunless %}
+  {% endif %}
 {% endfor %}
