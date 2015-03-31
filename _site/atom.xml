@@ -4,7 +4,7 @@
  <title>Simpson Lab Blog</title>
  <link href="http://hyde.getpoole.com/atom.xml" rel="self"/>
  <link href="http://hyde.getpoole.com/"/>
- <updated>2015-03-31T10:31:34-04:00</updated>
+ <updated>2015-03-31T11:42:04-04:00</updated>
  <id>http://hyde.getpoole.com</id>
  <author>
    <name>Jared Simpson</name>
@@ -31,7 +31,7 @@
 
 &lt;p&gt;I was not satisfied with the Python/C++ hybrid design. I am sensitive to installation issues when releasing software as I have found that installing dependencies is a major source of problems for the user (although great projects like &lt;a href=&quot;https://github.com/Homebrew/homebrew-science&quot;&gt;homebrew-science&lt;/a&gt; are helping a lot here). I admire Heng Li’s software where one usually just needs to run &lt;code&gt;git clone&lt;/code&gt; and &lt;code&gt;make&lt;/code&gt; to build the program. The initial version of nanopolish was far from this ideal as it depended on eight Python libraries that needed to be installed with &lt;code&gt;pip&lt;/code&gt;. When moving between my local development version and Nick’s server I realized that installing these dependencies often failed. With this in mind I decided to rewrite the Python frontend in C++. To do this, I crucially needed a replacement for poretools which I used to access the raw data. Matei David in my group volunteered to help and wrote an excellent, intuitive C++ &lt;a href=&quot;https://github.com/mateidavid/fast5&quot;&gt;library&lt;/a&gt; for parsing ONT’s FAST5 files.&lt;/p&gt;
 
-&lt;p&gt;There were additional benefits to this rewrite. In the Python version I used poa to compute an initial multiple alignment and used this to seed the HMM realignment. In the C++ version I discarded this step, removing another dependency, by inferring the initial alignment directly from the BAM file using &lt;a href=&quot;https://github.com/samtools/htslib&quot;&gt;htslib&lt;/a&gt;. This simplification, along with the much faster parsing of the FAST5 files provided by Matei’s library, reduced startup time from a few minutes to a few seconds. This helps me iterate on the code much faster during development.&lt;/p&gt;
+&lt;p&gt;There were additional benefits to this rewrite. In the Python version I again used poa to compute an initial multiple alignment and used this to seed the HMM realignment. In the C++ version I discarded this step, removing another dependency, by calculating the initial alignment directly from the BAM file using &lt;a href=&quot;https://github.com/samtools/htslib&quot;&gt;htslib&lt;/a&gt;. This simplification, along with the much faster parsing of the FAST5 files provided by Matei’s library, reduced startup time from a few minutes to a few seconds. This has helped me iterate on the code much faster during development.&lt;/p&gt;
 
 &lt;h2 id=&quot;improving-hmm-efficiency&quot;&gt;Improving HMM efficiency&lt;/h2&gt;
 
