@@ -2,7 +2,7 @@
 layout: post
 title: Nanopolish v0.2.0
 author: jared
-draft: true
+draft: false
 ---
 
 This post describes changes I have made to [nanopolish](https://github.com/jts/nanopolish), our HMM-based consensus caller for Oxford Nanopore data. This post can be thought of as a long changelog with background and rationale.
