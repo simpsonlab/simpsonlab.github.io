@@ -19,7 +19,7 @@ The MinION samples the current thousands of times per second; as 5-mers slide th
 
 ![simulation](/assets/simulation.svg)
 
-This is a simulation from an idealized nanopore sequencing process. The black dots represent the sampled current and the red lines indicate contiguous segments that make up the events. For example the mean current was around 60 picoamps, plus a bit of noise, for the first 0.5s. The current then dropped to 40 pA for 0.1s before jumping to 52 pA and so on. 
+This is a simulation from an idealized nanopore sequencing process. The black dots represent the sampled current and the red lines indicate contiguous segments that make up the detected events. For example the mean current was around 60 picoamps, plus a bit of noise, for the first 0.5s. The current then dropped to 40 pA for 0.1s before jumping to 52 pA and so on. 
 
 The event detection software writes this information to an HDF5 file. The raw kHz samples are typically not stored as the output files would be impractically large. Here's the table of events for this simulation:
 
@@ -48,14 +48,16 @@ This indicates that the measured current is expected to be drawn from $$\mathcal
 Inference Problems
 ------------------
 
-Using the pore model and the observed data we can solve a number of inference problems. For example we can infer the sequence of nucleotides that passed through the pore. This is the base calling problem and Oxford Nanopore provides software for this. We can also infer the sequence of the genome given a set of overlapping reads. This is the consensus problem, which we addressed in our paper.
+Using the pore model and the observed data we can solve a number of inference problems. For example we can infer the sequence of nucleotides that passed through the pore. This is the base calling problem. We can also infer the sequence of the genome given a set of overlapping reads. This is the consensus problem, which we addressed in our paper.
 
-These inference problems are complicated by two important factors. First, the normal distributions for 5-mers overlap. There are 1024 different 5-mers but the signals typically range from about 40-70 pA. This can make it difficult to infer which 5-mer generated a particular event. This is partially mitigated by the structure of the data; a solution must respect the overlap between 5-mers so a position that is difficult to resolve may become clear when we look at subsequent events. Second, event detection is performed in real time and inevitably makes errors. Some events may not be detected if they are too short or if the signals for adjacent 5-mers of the DNA strand are very similar. The extreme case for the latter situation occurs when sequencing through long homopolymers - here we do not expect a detectable change in current. The opposite problem occurs as well. The event detector may split what should be a single event into multiple events due to noise in the system that looks like a change in current. When performing inference the model must be flexible enough to handle these cases. 
+These inference problems are complicated by two important factors. First, the normal distributions for 5-mers overlap. There are 1024 different 5-mers but the signals typically range from about 40-70 pA. This can make it difficult to infer which 5-mer generated a particular event. This is partially mitigated by the structure of the data; a solution must respect the overlap between 5-mers so a position that is difficult to resolve may become clear when we look at subsequent events. Second, event detection is performed in real time and inevitably makes errors. Some events may not be detected if they are too short or if the signals for adjacent 5-mers of the DNA strand are very similar. The extreme case for the latter situation occurs when sequencing through long homopolymers - here we do not expect a detectable change in current. The opposite problem occurs as well. The event detector may split what should be a single event into multiple events due to noise in the system that looks like a change in current. Handling these artefacts is key to accurately inferring the DNA sequence that generated the events.
 
 Aligning Events to a Reference
 ------------------------------
 
-Our HMM explicitly models skipped 5-mers and multiple/split events as additional states in the model. A path through the HMM describes which 5-mer emitted each event. In our preprint we summed over all paths through the model using the forward algorithm to calculate the probability that a given sequence generated the observed event data. By simplying replacing the forward algorithm with the Viterbi algorith, we can find the most probable path through the model. The new ```eventalign``` module of ```nanopolish``` exposes this functionality as a command line tool.  This program takes in a set of nanopore reads aligned in base-space to a reference sequence (or draft genome assembly) and re-aligns the reads in event space.
+The hidden Markov model we designed for the consensus problem had 5-mers of an arbitrary sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. The hidden state of the system was a path through the HMM, which describe which 5-mer emitted each event.  When computing a consensus sequence we aren't interested in this event to 5-mer alignment so we summed over all alignments using the forward algorithm. In some situations however we _are_ interested in the alignment of events to 5-mers. If we use the Viterbi algorithm instead of the forward algorithm, and use a reference genome as the backbone of our HMM, we can calculate the most probable alignment of events to 5-mers.
+
+The new ```eventalign``` module of ```nanopolish``` exposes this functionality as a command line tool.  This program takes in a set of nanopore reads aligned in base-space to a reference sequence (or draft genome assembly) and re-aligns the reads in event space.
 
 The pipeline uses ```bwa mem``` alignments as a guide. We start with a normal bwa workflow:
 
@@ -63,7 +65,7 @@ The pipeline uses ```bwa mem``` alignments as a guide. We start with a normal bw
     samtools sort alignments.bam alignments.sorted
     samtools index alignments.sorted.bam
 
-We can then realign the BAM using nanopolish:
+We can then realign in event space                                                   using nanopolish:
 
     nanopolish eventalign -r reads.fa -b alignments.sorted.bam -g ecoli_k12.fasta "gi|556503834|ref|NC_000913.3|:10000-20000" > eventalign.tsv
 
@@ -80,7 +82,7 @@ The output looks like this:
     gi|556503834|ref|NC_000913.3|  10003     GCGCT           1           c       27476        67.11             0.017         GCGCT       68.08       2.20
     gi|556503834|ref|NC_000913.3|  10004     CGCTG           1           c       27477        69.47             0.052         CGCTG       69.84       1.89
 
-This is the complement strand (c) of a 2D Nanopore read from Nick's [E. coli data](http://www.gigasciencejournal.com/content/3/1/22) aligned to E. coli K12. The first event listed (event 27470) had a measured current level of 50.57. It aligns to the reference 5-mer ATTGC at position 10,000 of the reference genome. The pore model indicates that events measured for 5-mer ATTGC should come from $$\mathcal{N}(50.58, 1.02^2)$$, which matches the observed data very well. The next 3 events (27471, 27472, 27473) are all aligned to the same reference 5-mer (TTGCG) indicating that the event detector erroneously called 3 events where only one should have been emitted. Note that the current for these 3 events are all plausibly drawn from the expected distribution $$\mathcal{N}(51.68, 0.73^2)$$.
+This is the complement strand (c) of a 2D Nanopore read from Nick's [E. coli data](http://www.gigasciencejournal.com/content/3/1/22) aligned to E. coli K12. The first event listed (event 27470) had a measured current level of 50.57 pA. It aligns to the reference 5-mer ATTGC at position 10,000 of the reference genome. The pore model indicates that events measured for 5-mer ATTGC should come from $$\mathcal{N}(50.58, 1.02^2)$$, which matches the observed data very well. The next 3 events (27471, 27472, 27473) are all aligned to the same reference 5-mer (TTGCG) indicating that the event detector erroneously called 3 events where only one should have been emitted. Note that the current for these 3 events are all plausibly drawn from the expected distribution $$\mathcal{N}(51.68, 0.73^2)$$.
 
 This output has one row for every event. If a reference 5-mer was skipped, there will be a gap in the output where no signal was observed:
 
@@ -100,4 +102,4 @@ I have added a function to plot the z-score for event observations (the measured
 
 ![region](/assets/140407.regionexample.svg)
 
-Hopefully this repository will grow as new ways to analyze signal-level nanopore data are developed. The ```eventalign``` module can be found in the latest version of [nanopolish](https://github.com/jts/nanopolish). 
+This repository will grow as new ways to analyze signal-level nanopore data are developed. The ```eventalign``` module can be found in the latest version of [nanopolish](https://github.com/jts/nanopolish). 
