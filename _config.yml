@@ -10,7 +10,7 @@ relative_permalinks: true
 title:            Simpson Lab Blog
 tagline:          'SimpsonLab blog'
 description:      'A blog for the Simpson Lab at the Ontario Institute for Cancer Research'
-url:              http://hyde.getpoole.com
+url:              simpsonlab.github.io
 baseurl:          /
 
 author:
