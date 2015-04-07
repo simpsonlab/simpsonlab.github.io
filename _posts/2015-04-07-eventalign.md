@@ -8,7 +8,7 @@ draft: true
 Introduction
 ------------
 
-This post describes a new module I added to our [nanopolish](https://github.com/jts/nanopolish) software package that aligns nanopore _event_ data to a reference genome. This is in contrast to most approaches which align two DNA sequences to each other (for example a base-called read and a reference genome). To make sense of what aligning events to a reference genome means, I will describe at a high level my model of how nanopore sequencing works. For a more detailed and technical description, see the supplement of our [preprint](http://biorxiv.org/content/early/2015/03/11/015552).
+This post describes a new module I added to our [nanopolish](https://github.com/jts/nanopolish) software package that aligns the signal data emitted by a nanopore to a reference genome. This is in contrast to most approaches which align two DNA sequences to each other (for example a base-called read and a reference genome). To make sense of what aligning signal data to a reference genome means, I will describe at a high level my model of how nanopore sequencing works. For a more detailed and technical description, see the supplement of our [preprint](http://biorxiv.org/content/early/2015/03/11/015552).
 
 Nanopore Sequencing
 -------------------
@@ -19,9 +19,9 @@ The MinION samples the current thousands of times per second; as 5-mers slide th
 
 ![simulation](/assets/simulation.svg)
 
-This is a simulation from an idealized nanopore sequencing process. The black dots represent the sampled current and the red lines indicate contiguous segments that make up the detected events. For example the mean current was around 60 picoamps, plus a bit of noise, for the first 0.5s. The current then dropped to 40 pA for 0.1s before jumping to 52 pA and so on. 
+This is a simulation from an idealized nanopore sequencing process. The black dots represent the sampled current and the red lines indicate contiguous segments that make up the detected _events_. For example the mean current was around 60 picoamps, plus a bit of noise, for the first 0.5s. The current then dropped to 40 pA for 0.1s before jumping to 52 pA and so on. 
 
-The event detection software writes this information to an HDF5 file. The raw kHz samples are typically not stored as the output files would be impractically large. Here's the table of events for this simulation:
+The event detection software writes the events to an HDF5 file. The raw kHz samples are typically not stored as the output files would be impractically large. Here's the table of events for this simulation:
 
 | event index  | mean (pA) | length (s) |
 | :----------: | :-------: | :--------: |
@@ -45,8 +45,8 @@ To help translate events into a DNA sequence, Oxford Nanopore provides a _pore m
 
 This indicates that the measured current is expected to be drawn from $$\mathcal{N}(53.5, 1.3^2)$$ when AAAAA is in the pore and so on.
 
-Inference Problems
-------------------
+Inferring Bases from Events
+---------------------------
 
 Using the pore model and the observed data we can solve a number of inference problems. For example we can infer the sequence of nucleotides that passed through the pore. This is the base calling problem. We can also infer the sequence of the genome given a set of overlapping reads. This is the consensus problem, which we addressed in our paper.
 
@@ -55,7 +55,7 @@ These inference problems are complicated by two important factors. First, the no
 Aligning Events to a Reference
 ------------------------------
 
-The hidden Markov model we designed for the consensus problem had 5-mers of an arbitrary sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. The hidden state of the system was a path through the HMM, which describe which 5-mer emitted each event.  When computing a consensus sequence we aren't interested in this event to 5-mer alignment so we summed over all alignments using the forward algorithm. In some situations however we _are_ interested in the alignment of events to 5-mers. If we use the Viterbi algorithm instead of the forward algorithm, and use a reference genome as the backbone of our HMM, we can calculate the most probable alignment of events to 5-mers of a reference.
+The hidden Markov model we designed for the consensus problem had 5-mers of an arbitrary sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. In this HMM 5-mers emitted events; a path through the HMM describes an alignment between a sequence of events and a sequence of 5-mers. When we made our E. coli assembly we weren't interested in the best alignment so we summed over all paths through the HMM using the forward algorithm. In some situations however we _are_ interested in the alignment of events to 5-mers. If we use the Viterbi algorithm instead of the forward algorithm, and make a reference genome the backbone of our HMM, we can calculate the most probable alignment of events to a reference sequence.
 
 The new ```eventalign``` module of ```nanopolish``` exposes this functionality as a command line tool.  This program takes in a set of nanopore reads aligned in base-space to a reference sequence (or draft genome assembly) and re-aligns the reads in event space.
 
@@ -91,15 +91,4 @@ This output has one row for every event. If a reference 5-mer was skipped, there
 
 Here we did not observe an event for the 5-mer at position 10010.
 
-Plotting the alignments
------------------------
-
-I have started a [small repository](https://github.com/jts/nanopolish-analysis) to visualize the alignments of nanopore events to a reference sequence. 
-I have added a function to plot the z-score for event observations (the measured current standardized by the pore model for the reference 5-mer) over a region of the genome:
-
-    data <- load_eventalign("eventalign.tsv")
-    plot_region_scores(data, "gi|556503834|ref|NC_000913.3|", 10000, 10100)
-
-![region](/assets/140407.regionexample.svg)
-
-This repository will grow as new ways to analyze signal-level nanopore data are developed. The ```eventalign``` module can be found in the latest version of [nanopolish](https://github.com/jts/nanopolish). 
+This module will hopefully make it easier to work with signal-level nanopore data, and help the development of improved models. The ```eventalign``` module can be found in the latest version of [nanopolish](https://github.com/jts/nanopolish). 
