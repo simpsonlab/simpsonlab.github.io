@@ -2,7 +2,7 @@
 layout: post
 title: Aligning Nanopore Events to a Reference
 author: jared
-draft: true
+draft: false
 comments: true
 ---
 

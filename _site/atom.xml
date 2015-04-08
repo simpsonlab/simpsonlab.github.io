@@ -4,7 +4,7 @@
  <title>Simpson Lab Blog</title>
  <link href="simpsonlab.github.io/atom.xml" rel="self"/>
  <link href="simpsonlab.github.io/"/>
- <updated>2015-04-08T09:11:40-04:00</updated>
+ <updated>2015-04-08T09:42:35-04:00</updated>
  <id>simpsonlab.github.io</id>
  <author>
    <name>Jared Simpson</name>
@@ -14,9 +14,9 @@
  
  <entry>
    <title>Aligning Nanopore Events to a Reference</title>
-   <link href="simpsonlab.github.io/2015/04/07/eventalign/"/>
-   <updated>2015-04-07T00:00:00-04:00</updated>
-   <id>simpsonlab.github.io/2015/04/07/eventalign</id>
+   <link href="simpsonlab.github.io/2015/04/08/eventalign/"/>
+   <updated>2015-04-08T00:00:00-04:00</updated>
+   <id>simpsonlab.github.io/2015/04/08/eventalign</id>
    <content type="html">&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
 
 &lt;p&gt;This post describes a new module I added to our &lt;a href=&quot;https://github.com/jts/nanopolish&quot;&gt;nanopolish&lt;/a&gt; software package that aligns the signal data emitted by a nanopore to a reference genome. This is in contrast to most approaches which align two DNA sequences to each other (for example a base-called read and a reference genome). To make sense of what aligning signal data to a reference genome means, I will describe at a high level my model of how nanopore sequencing works. For a more detailed and technical description, see the supplement of our &lt;a href=&quot;http://biorxiv.org/content/early/2015/03/11/015552&quot;&gt;preprint&lt;/a&gt;.&lt;/p&gt;
