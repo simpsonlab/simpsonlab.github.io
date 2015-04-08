@@ -56,7 +56,7 @@ These inference problems are complicated by two important factors. First, the no
 Aligning Events to a Reference
 ------------------------------
 
-The hidden Markov model we designed for the consensus problem had 5-mers of an arbitrary sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. In this HMM 5-mers emitted events; a path through the HMM describes an alignment between a sequence of events and a sequence of 5-mers. When we made our E. coli assembly we weren't interested in the best alignment so we summed over all paths through the HMM using the forward algorithm. In some situations however we _are_ interested in the alignment of events to 5-mers. If we use the Viterbi algorithm instead of the forward algorithm, and make a reference genome the backbone of our HMM, we can calculate the most probable alignment of events to a reference sequence.
+The hidden Markov model we designed for the consensus problem had 5-mers of an arbitrary sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. In our preprint we used this HMM to calculate a consensus sequence from a set of reads. If we make a reference genome the backbone of the HMM, we can use it to align events to the reference.
 
 The new ```eventalign``` module of ```nanopolish``` exposes this functionality as a command line tool.  This program takes in a set of nanopore reads aligned in base-space to a reference sequence (or draft genome assembly) and re-aligns the reads in event space.
 
