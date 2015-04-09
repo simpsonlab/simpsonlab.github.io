@@ -30,6 +30,8 @@ pages_list:
 authors:
     jared:
         display_name: Jared Simpson
+    jonathan:
+        display_name: Jonathan Dursi
 
 github:
   repo:           https://github.com/simpsonlab/simpsonlab.github.io
