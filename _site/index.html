@@ -207,14 +207,13 @@
 
 <h2 id="aligning-events-to-a-reference">Aligning Events to a Reference</h2>
 
-<p>The hidden Markov model we designed for the consensus problem had 5-mers of an arbitrary sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. In our preprint we used this HMM to calculate a consensus sequence from a set of reads. If we make a reference genome the backbone of the HMM, we can use it to align events to the reference.</p>
+<p>The hidden Markov model we designed for the consensus problem had 5-mers of a proposed consensus sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. In our preprint we used this HMM to calculate a consensus sequence from a set of reads. If we make a reference genome the backbone of the HMM, we can use it to align events to the reference.</p>
 
 <p>The new <code>eventalign</code> module of <code>nanopolish</code> exposes this functionality as a command line tool.  This program takes in a set of nanopore reads aligned in base-space to a reference sequence (or draft genome assembly) and re-aligns the reads in event space.</p>
 
 <p>The pipeline uses <code>bwa mem</code> alignments as a guide. We start with a normal bwa workflow:</p>
 
-<pre><code>bwa mem -x ont2d -t 8 ecoli_k12.fasta reads.fa | samtools view -Sb - &gt; alignments.bam
-samtools sort alignments.bam alignments.sorted
+<pre><code>bwa mem -x ont2d -t 8 ecoli_k12.fasta reads.fa | samtools view -Sb - | samtools sort - alignments.sorted
 samtools index alignments.sorted.bam
 </code></pre>
 
