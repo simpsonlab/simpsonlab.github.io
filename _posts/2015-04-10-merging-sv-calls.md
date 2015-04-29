@@ -6,13 +6,22 @@ draft: true
 comments: true
 ---
 
-As part of the work of the [Pancancer variant-calling working group](http://pancancer.info/variant_calling.html), we needed to merge the results of variant calls from a wide range of different packages to compare their results and select interesting sites for lab validation.  
+As part of the work of the [Pancancer variant-calling working
+group](http://pancancer.info/variant_calling.html), we needed to merge the
+results of variant calls from a wide range of different packages to compare
+their results and select interesting sites for lab validation.  This is a 
+more subtle procedure than it sounds like, and we could not find any one 
+place where all the necessary information was documented, so we wrote up 
+our process here.
 
 ## Simple Variants - SNVs, Indels
 
 The standard format used to output variants is the [Variant Call Format](http://en.wikipedia.org/wiki/Variant_Call_Format).  For [SNVs](http://en.wikipedia.org/wiki/Single-nucleotide_polymorphism) and shortish [indels](http://en.wikipedia.org/wiki/Indel) (insertions or deletions), this works very well.  Each entry in a VCF file contains the location of the variant (the chromosome it occurs on, and the starting position), the relevant excerpt of the reference sequence starting at that position, and the "alternate" sequence -- the variant sequence that has been found there instead.   
 
-There are other fields that we'll come back to; but a VCF file containing an A &rightarrow; G SNV at chromosome 1, position 100, a 3 base-pair deletion at chromosome 2, position 200, and a 5 basepair insertion at chromosome 3, position 300 would look something like this:
+There are other fields that we will come back to; but a VCF file
+containing an A &rarr; G SNV at chromosome 1, position 100, a
+3 base-pair deletion at chromosome 2, position 200, and a 5 basepair
+insertion at chromosome 3, position 300 would look something like this:
 
 {% highlight bash %}
 #CHROM POS  ID  REF     ALT     ..
@@ -21,7 +30,17 @@ There are other fields that we'll come back to; but a VCF file containing an A &
 3       300 .   T       TACGTA
 {% endhighlight %}
 
-Even this admits some ambiguity; for instance, a deletion of 3 As within a homopolymer run of 10 of them could reasonably be called at any of 8 positions; and more complex substitions can be equally described as one large variant, or as a combination of insertions, deletions, and substitions.  To break these ambiguities, there is a well understood [normalization](http://genome.sph.umich.edu/wiki/Variant_Normalization) process, which requires looking at both the reference genome and the VCF file.  It's fairly straightforward, implemented by several tools, and we perform this step (using [bcftools norm](https://samtools.github.io/bcftools/bcftools.html#norm)) upon ingesting the submitted calls from various groups.
+Even this admits some ambiguity; for instance, a deletion of 3 As within a
+homopolymer run of 10 of them could reasonably be called at any of 8 positions;
+and more complex substitions can be equally described as one large variant, or
+as a combination of insertions, deletions, and substitions.  To break these
+ambiguities, there is a well understood
+[normalization](http://genome.sph.umich.edu/wiki/Variant_Normalization)
+process, which requires looking at both the reference genome and the VCF file.
+It is fairly straightforward, implemented by several
+tools, and we perform this step (using [bcftools
+norm](https://samtools.github.io/bcftools/bcftools.html#norm)) upon
+ingesting the submitted calls from various groups.
 
 Once these sorts of calls are normalized, these sorts of calls are fairly easily merged and compared.  We used python for this project, and we used Jared's code from an earlier pilot for this &ndash; using a dictionary of dictionaries, where the first key was a (chromosome,start position) tuple.  The value in the first dictionary corresponding to that key was then a dictionary of (reference allele, variant allele), with a value that was a list of callers that had made that call.  So querying existance of a variant was just two (at most) dictionary lookups; and registering that a caller made a particular call was two dictionary lookups and a list append, possibly creating dictionaries and lists along the way if this was the first time these entries were seen.
 
@@ -44,7 +63,13 @@ Many callers provided confidence intervals on locations of the breakpoints in th
 
 We used a fixed window size of 300bp, of the order of the insert size observed in the libraries; in principle, this is more agressive a merging strategy than using the confidence intervals when available (which were typically much less), but in practice, there were very few pairs of calls where the larger window size would have mattered.
 
-The most efficient way to look up possible matching locations within some window would be to use a spatial data structure such as an [interval tree](http://en.wikipedia.org/wiki/Interval_tree); however, since our window size was relatively modest, and we are constrained to integer positions, I dealt with uncertainty in locations in location lookups by brute-force; I simply search every integer position within the window.  For efficiency, and to ensure the closest match is found, the search is by distance (pos+0, pos&pm;1, ...).  Because dictionary lookup in python is so fast, this approach is "fast enough" for our purposes, in that this is not the rate limiting step for the merging pipeline.
+The most efficient way to look up possible matching locations within some
+window would be to use a spatial data structure such as an [interval
+tree](http://en.wikipedia.org/wiki/Interval_tree); however, since our window
+size was relatively modest, and we are constrained to integer positions, I
+dealt with uncertainty in locations in location lookups by brute-force; I
+simply search every integer position within the window.  For efficiency, and to
+ensure the closest match is found, the search is by distance (pos+0, pos&plusmn;1, ...).  Because dictionary lookup in python is so fast, this approach is "fast enough" for our purposes, in that this is not the rate limiting step for the merging pipeline.
 
 ### Annotation
 
@@ -110,7 +135,8 @@ Clearly, both <TRA> calls and BND-style calls are equivalent; we output BND-styl
 
 #### Higher-level Symbolic Calls (<DEL\>, <INV\>, <DUP\>)
 
-Higher-level calls have to be handled a little differently.  Because some callers may call them using BND-style calls, or even <TRA> calls, they have to be decompose into the lowest common denominator - individual adjacencies.
+Higher-level calls have to be handled a little differently.  Because some
+callers may call them using BND-style calls, or even <TRA\> calls, they have to be decompose into the lowest common denominator - individual adjacencies.
 
 In the figure below are simple examples of a deletion, an inversion, and a duplication.  
 
