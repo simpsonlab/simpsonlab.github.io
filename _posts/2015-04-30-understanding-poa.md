@@ -241,6 +241,7 @@ In more detail, the steps we take are as follows:
 * For each sequence base in the calculated alignment,
     * If the current base is not aligned to a node in the graph, or if it is but neither the node nor any node _it_ is aligned to has the same base,
         * A new node is created with the sequence base, and is selected as the current node
+        * This new node is aligned to the aligned node if any, and all of the "aligned-to" nodes are updated to align to this one.
     * Otherwise,
         * That node with the same base is selected as the current node
     * If one does not already exist, a new edge is added from the previous position to the current node
@@ -301,6 +302,16 @@ The consensus paper identifies a particular corner case where a consensus
 sequence might terminate early; we allow this to happen.
 
 ### Alignment strings
+
+Finally, to communicate the alignment results, it can still be useful
+to generate a "flattened" alignment of the input and consensus sequences.
+
+This is again fairly straightforwardly done once the graph is topologically
+sorted.  Each node in the graph, in topological order, is assigned a column
+in the final table to be generated, with rings of nodes that are aligned to
+each other assigned to the same column, and nodes that are not aligned to any
+others getting their own column. Then the bases are filled in, with each 
+sequence (including the consensus sequences) getting their own row.
 
 ### Simple Implementation
 
