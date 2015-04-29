@@ -4,7 +4,7 @@
  <title>Simpson Lab Blog</title>
  <link href="simpsonlab.github.io/atom.xml" rel="self"/>
  <link href="simpsonlab.github.io/"/>
- <updated>2015-04-08T09:43:39-04:00</updated>
+ <updated>2015-04-13T15:37:40-04:00</updated>
  <id>simpsonlab.github.io</id>
  <author>
    <name>Jared Simpson</name>
@@ -129,14 +129,13 @@
 
 &lt;h2 id=&quot;aligning-events-to-a-reference&quot;&gt;Aligning Events to a Reference&lt;/h2&gt;
 
-&lt;p&gt;The hidden Markov model we designed for the consensus problem had 5-mers of an arbitrary sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. In our preprint we used this HMM to calculate a consensus sequence from a set of reads. If we make a reference genome the backbone of the HMM, we can use it to align events to the reference.&lt;/p&gt;
+&lt;p&gt;The hidden Markov model we designed for the consensus problem had 5-mers of a proposed consensus sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. In our preprint we used this HMM to calculate a consensus sequence from a set of reads. If we make a reference genome the backbone of the HMM, we can use it to align events to the reference.&lt;/p&gt;
 
 &lt;p&gt;The new &lt;code&gt;eventalign&lt;/code&gt; module of &lt;code&gt;nanopolish&lt;/code&gt; exposes this functionality as a command line tool.  This program takes in a set of nanopore reads aligned in base-space to a reference sequence (or draft genome assembly) and re-aligns the reads in event space.&lt;/p&gt;
 
 &lt;p&gt;The pipeline uses &lt;code&gt;bwa mem&lt;/code&gt; alignments as a guide. We start with a normal bwa workflow:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;bwa mem -x ont2d -t 8 ecoli_k12.fasta reads.fa | samtools view -Sb - &amp;gt; alignments.bam
-samtools sort alignments.bam alignments.sorted
+&lt;pre&gt;&lt;code&gt;bwa mem -x ont2d -t 8 ecoli_k12.fasta reads.fa | samtools view -Sb - | samtools sort - alignments.sorted
 samtools index alignments.sorted.bam
 &lt;/code&gt;&lt;/pre&gt;
 

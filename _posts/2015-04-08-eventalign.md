@@ -62,8 +62,7 @@ The new ```eventalign``` module of ```nanopolish``` exposes this functionality a
 
 The pipeline uses ```bwa mem``` alignments as a guide. We start with a normal bwa workflow:
 
-    bwa mem -x ont2d -t 8 ecoli_k12.fasta reads.fa | samtools view -Sb - > alignments.bam
-    samtools sort alignments.bam alignments.sorted
+    bwa mem -x ont2d -t 8 ecoli_k12.fasta reads.fa | samtools view -Sb - | samtools sort - alignments.sorted
     samtools index alignments.sorted.bam
 
 We can then realign in event space                                                   using nanopolish:
