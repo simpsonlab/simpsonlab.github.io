@@ -7,9 +7,11 @@ comments: true
 ---
 
 Jared&#8217;s [nanopolish](https://github.com/jts/nanopolish) tool for
-Nanopore data uses [poaV2](http://sourceforge.net/projects/poamsa/), the 
-original partial order alignment software described in papers by Lee, Grasso,
-and Sharlow [^1]<sup>,</sup>[^2]<sup>,</sup>[^3].  
+Nanopore data uses [poaV2](http://sourceforge.net/projects/poamsa/),
+the original partial order alignment software described in papers by
+Lee, Grasso, and Sharlow [^1]<sup>,</sup>[^2]<sup>,</sup>[^3], for
+correcting the reads, following a similar approach taken by PacBio in
+[PBDagCon](https://github.com/PacificBiosciences/pbdagcon).
 
 This post gives a quick lower-level overview of the steps in the POA
 algorithm, with a [simple implementation in python](https://github.com/ljdursi/poapy) 
@@ -30,22 +32,23 @@ CCGCTTTTCCGC
 CCGCAAAACCGC
 </pre>
 
-There is an ambiguity in aligning them as a linear alignment; for
-instance below are 4 of 2<sup>8</sup>&nbsp;=&nbsp;256 equivalent ways of expressing the
-same pairwise alignment, although some may differ in how favoured they
-are by particular gap-scoring schemes:
+There is ambiguity in selecting a single, best alignment between this
+pair of sequences; for instance below are 4 of 2<sup>8</sup>&nbsp;=&nbsp;256 nearly equivalent
+ways of expressing this pairwise alignment. The best alignment will
+depend on the particular gap-scoring scheme used.
 
 <pre>
 CCGC----TTTTCGCG   CCGCTTTT----CCGC  CCGC-TT-TT--CGCG   CCGC-T-T-T-TCCGC
 CCGCAAAA----CGCG   CCGC----AAAACCGC  CCGCA--A--AACCGC   CCGCA-A-A-A-CCGC
 </pre>
 
-While for a pairwise alignment this is comparitively harmless, as 
-additional sequences are aligned to this alignment to form an MSA, the
-choice between these ambiguities begin to distort the eventual result.  What we
-would like is to consider not necessarily a linear layout, but something
-that can express more unambigiously "one sequence inserts a run of A, and the
-other of T".  And a natural way to view that is with a graph:
+While for a pairwise alignment this is comparatively harmless, as
+additional sequences are added to form a multiple sequence alignment
+(MSA), the choice between these ambiguities begin to distort the eventual
+result. What we would like is to consider not necessarily a single linear
+layout, but something that can express more unambiguously &ldquo;one
+sequence inserts a run of A, and the other of T&rdquo;. And a natural way
+to view that is with a graph:
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/3.11.0/vis.min.js"></script>
 <div id="mynetwork"></div>
@@ -75,7 +78,7 @@ var edges = [
   var network = new vis.Network(container, data, options);
 </script>
 
-The partial order alignment graph differs from the alingment strings
+The partial order alignment graph differs from the alignment strings
 in that a given base can have multiple predecessors (_eg_, the `C`
 after the fork being preceeded by both a string of `A`s and of `T`s)
 or successors (_eg_, the `C` before the fork).  But it is similar to
@@ -93,7 +96,7 @@ generalization is not needed.
 
 ### Smith-Waterman
 
-To consider how alignment with a graph works, let &#8217;s remind ourselves of
+To consider how alignment to a graph works, let &#8217;s remind ourselves of
 how we perform alignment on sequences.
 
 In the
@@ -122,7 +125,7 @@ We can calculate the scores for pairs of positions in any order we like
 as long as for any position we calculate, the scores for the previous 
 positions we need have already been calculated.
 
-### String-Graph Alignment
+### String to Graph Alignment
 
 ![Dynamic programming for graph-string alignment](/assets/poa/poa-dynamicprogramming.png "Dynamic programming for graph-string alignment")
 
@@ -227,12 +230,12 @@ predecessor/successor; and dashed lines, indicating that (say) the `A` and `C`
 that are three bases from the start are aligned to each other, but are
 mismatches; similarly with the `C` and `T` towards the end.
 
-We keep track of both the predecessor/succssor nodes and all 'aligned-to'
+We keep track of both the predecessor/successor nodes and all 'aligned-to'
 nodes.  We walk along the sequence we are inserting and its calculated
 alignment.  We insert nodes in the sequence if they are not aligned to
 anything, or none of the nodes that it directly or indirectly aligns to have
-the same base; otherwise, we re-use that node and simply add new edges if
-necessary to it.
+the same base; otherwise, we re-use that node and simply add new edges to it if
+necessary.
 
 In more detail, the steps we take are as follows:
 
@@ -271,13 +274,14 @@ Finding the single best-supported traversal through the graph is relatively
 straightforward.  In fact, this is again a dynamic programming problem; one
 sets the scores of all nodes to zero, and then marches through the graph node
 by node.  At each node, one chooses the "best" edge into that node &ndash; the
-one with the most sequences including it &ndash; and sets the score to be the
-that edge weight plus the score of the node pointed to; and in case of a tie
+one with the most sequences including it &ndash; and sets the score to be 
+the edge weight plus the score of the node pointed to; and in case of a tie
 between edges, one chooses the one pointing to the highest-scoring node. 
 
 The highest score and the edges chosen gives you a maximum-weighted path
 through the graph.  As is pointed out in the consensus paper, this is
-a maximum-likelihood path if the probabilities correspond to the edge weights.
+a maximum-likelihood path if the edge weights correspond to the probabilities
+that the edge is followed.
 
 However, there may well be multiple consensus features in the alignment that
 one wishes to extract; a feature seen by multiple but still a minority of
@@ -315,16 +319,16 @@ sequence (including the consensus sequences) getting their own row.
 
 ### Simple Implementation
 
-A simple but fully functional implementation in python of the algorithms
+A simple but fully functional Python implementation of the algorithms
 described above [can be found here](https://github.com/ljdursi/poapy).
 For the alignment stage, two implementations are given; one
 that is quite simple to follow but is very slow; and another
 that is significantly faster, but may require a little more careful
 reading, as it uses numpy vectorization to improve performance.
 
-Even the faster implementation is still slow &ndash; about 7 times slower
+Even the faster implementation is still slow &ndash; about 10 times slower
 than the [poaV2](http://sourceforge.net/projects/poamsa/) code written
-in C as distributed, or closer to 10 if poaV2 is compiled with `-O3`
+in C as distributed, or closer to 20 if poaV2 is compiled with `-O3`
 &ndash; but is nonetheless useable for small problems.
 
 The simple implementation above can generate HTML with an interactive
