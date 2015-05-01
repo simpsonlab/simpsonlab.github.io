@@ -19,11 +19,11 @@ to demonstrate the ideas more concretely.
 
 ### The Basics
 
-The insight of the first POA paper was that &ldquo;flattening&rdquo;
-of the alignment of sequences leads to meaningless artifacts that, while
-largely harmless for pairwise alignments or even multiple alignments of
-strongly conserved sequences, causes problems with multiple alignments.
-For instance, consider the following sequences:
+The insight of the first POA paper was that &ldquo;flattening&rdquo; of
+the alignment of sequences leads to meaningless artifacts that, while
+largely harmless for pairwise alignments or even multiple alignments
+of strongly conserved sequences, causes problems with more general
+multiple alignments.  For instance, consider the following sequences:
 
 <pre>
 >seq1
