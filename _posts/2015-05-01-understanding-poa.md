@@ -157,14 +157,14 @@ When aligning two sequences, one could choose an order to loop over the
 sequence indices before hand so that, for any new position being calculated,
 the necessary previous scores would already be ready.
 
-The nodes in the graph, however, do not have such a useful intrinsic order.
-If the nodes are considered in the order they are added, for instance, then the
-newest nodes inserted with a new sequence - which may have successors that are
-order nodes earlier in the graph - will not have been already scored when their
+The nodes in the graph, however, do not have such a useful intrinsic
+order.  If the nodes are considered in the order they are added, for
+instance, then the newest nodes inserted with a new sequence &ndash;
+which may have been inserted as predecessors of nodes that had been
+inserted earlier &ndash; will not have been already scored when their
 successor begins its calculation.
 
-The answer is to use a [Topological
-Sort](http://en.wikipedia.org/wiki/Topological_sorting) to generate an
+The answer is to use a [Topological Sort](http://en.wikipedia.org/wiki/Topological_sorting) to generate an
 ordering of nodes in which every node is guaranteed to follow all of
 its predecessors.  This is always possible for a directed graph as long
 as there are no cycles, and indeed there can be many such orderings.
