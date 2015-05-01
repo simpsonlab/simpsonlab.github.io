@@ -317,6 +317,14 @@ each other assigned to the same column, and nodes that are not aligned to any
 others getting their own column. Then the bases are filled in, with each 
 sequence (including the consensus sequences) getting their own row.
 
+Because we are assigning columns to the nodes in topologically-sorted order,
+the method used to generate the (non-unique) topological sort affects how
+the alignments look as alignment strings, even if they are all functionally
+identical.  Kahn sorting tends to interleave the results of sequences, whereas
+depth-first-search necessarily visits long strings of runs in order.  DFS
+then generates better looking alignment strings, so we use that approach
+in the implementation below.
+
 ### Simple Implementation
 
 A simple but fully functional Python implementation of the algorithms
