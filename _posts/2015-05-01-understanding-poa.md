@@ -2,7 +2,7 @@
 layout: post
 title: Understanding Partial Order Alignment for Multiple Sequence Alignment
 author: jonathan
-draft: true
+draft: false
 comments: true
 ---
 
