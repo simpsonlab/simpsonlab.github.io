@@ -191,7 +191,7 @@ given us an alignment that looks like this:
 
 <pre>
 CGATTACG
-||.||||
+||.|||.
 CGCTTAT-
 </pre>
 
