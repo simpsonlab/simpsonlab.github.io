@@ -4,13 +4,15 @@
  <title>Simpson Lab Blog</title>
  <link href="simpsonlab.github.io/atom.xml" rel="self"/>
  <link href="simpsonlab.github.io/"/>
- <updated>2015-05-01T14:28:04-04:00</updated>
+ <updated>2015-05-18T17:04:16-04:00</updated>
  <id>simpsonlab.github.io</id>
  <author>
    <name>Jared Simpson</name>
    <email></email>
  </author>
 
+ 
+  
  
   
  
@@ -87,9 +89,9 @@ var edges = [
     {from: 10, to: 11, value: 3}
 ];
 
-  var container = document.getElementById('mynetwork');
+  var container = document.getElementById(&#39;mynetwork&#39;);
   var data= { nodes: nodes, edges: edges, };
-  var options = { width: '100%', height: '200px' };
+  var options = { width: &#39;100%&#39;, height: &#39;200px&#39; };
   var network = new vis.Network(container, data, options);
 &lt;/script&gt;
 
@@ -240,9 +242,9 @@ var edges = [
     {from: 5, to: 6, value: 2}, {from: 6, to: 7, value: 2}, {from: 6, to: 9, value: 1, style: &quot;dash-line&quot;}
 ];
 
-  var container = document.getElementById('mynetwork2');
+  var container = document.getElementById(&#39;mynetwork2&#39;);
   var data= { nodes: nodes, edges: edges, };
-  var options = { width: '100%', height: '200px' };
+  var options = { width: &#39;100%&#39;, height: &#39;200px&#39; };
   var network = new vis.Network(container, data, options);
 &lt;/script&gt;
 
