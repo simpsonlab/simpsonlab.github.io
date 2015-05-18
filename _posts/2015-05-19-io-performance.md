@@ -134,9 +134,12 @@ Note that this method does uniformly select records, and can work in pipes or th
 
 ### Timing Results: Workstation Hard Drive
 
-I ran these benchmarks on my desktop workstation, with a physical hard drive. As a quick benchmark for streaming, simply counting the number of lines of the uncompressed (a shade under 4GB) file takes about 25 seconds on this system, which gives us a sense of the best possible streaming time for the file; this is about 160MB/s, a reasonable result (and in fact slightly higher than I would have expected).  The file handling and parsing will be significantly slower in python than it would be in C++, which disadvantages the streaming approach (which must process many more records than the seeking approach) somewhat, but our results should be instructive regardless.
+I ran these benchmarks on my desktop workstation, with a physical hard drive. As a quick benchmark for streaming, simply counting the number of lines of the uncompressed (a shade under 4GB) file takes about 25 seconds on this system, which gives us a sense of the best possible streaming time for the file; this is about 160MB/s, a reasonable result (and in fact slightly higher than I would have expected).  Similarly, if we expected an IOPS rate of about 400, then we'd expect to see 0.1% selection to take about 6445/400 ~ 16s.
 
-The primary results are shown in this plot, which we have already seen:
+
+The file handling and parsing will be significantly slower in python than it would be in C++, which disadvantages the streaming approach (which must process many more records than the seeking approach) somewhat, but our results should be instructive regardless.  
+
+The primary results are shown in this plot, which we have already seen (note that both x and y scales are logarithmic):
 
 ![Streaming Reads vs. Seeks](/assets/io/uncompress-seek-vs-stream.png)
 
