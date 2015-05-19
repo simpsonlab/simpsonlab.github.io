@@ -26,7 +26,7 @@ Both the drive controller hardware and the operating system work hard to maximiz
  
 This means that, for physical media, there is a limit to the number of (say) read I/O Operations Per Second (IOPS) that can be performed; the bottleneck could be at the filesystem level, or the disk controller, but it is normally at the level of the individual hard drive, where the least can be done about it.  As a result, even for quite good, new, hard drives, a [typical performance](http://en.wikipedia.org/wiki/IOPS#Mechanical_hard_drives) might be say 250 IOPS. 
 
-On the other hand, once the sector is under the read head, a lot of data can be pulled in at once.  New hard disks typically have [block sizes](http://en.wikipedia.org/wiki/Disk_sector) of 4KB, and all of that data can be slurped in instantly.  A good hard disk and controller can easily provide sequential read rates (or bandwidth) of over 100MB/s.
+On the other hand, once the sector is under the read head, a lot of data can be pulled in at once.  New hard disks typically have [block sizes](http://en.wikipedia.org/wiki/Disk_sector) of 4KB, and all of that data can be slurped in essentially instantly.  A good hard disk and controller can easily provide sequential read rates (or bandwidth) of over 100MB/s.
 
 ### Prefetching and Caching, or: Why is Bandwidth so good?
 
@@ -75,7 +75,7 @@ def randomSeek(infile, size, nrecords):
             locations.append(int(random.uniform(0,size)))
         locations.sort()
 
-		# read the records immediately following these locations
+	# read the records immediately following these locations
         records = []
         reader = simplefasta.FastaReader(infile)
         for location in locations:
@@ -92,12 +92,12 @@ def randomSeek(infile, size, nrecords):
     return records
 {% endhighlight %}
 
-There's a few things to note about this approach:
+There are a few things to note about this approach:
 
 * I've sorted the random locations to improve our chances of reading nearby locations sequentially, letting the operating system help us when it can.
 * The file size must be known before generating the locations.  This means we must have access to the whole file; we can't just pipe a file through this method
 * Some compression methods become difficult to deal with; one can't just move to a random location in a gzipped file, for instance, and start reading.  Other compression methods - bgzip, for instance, make things a little easier but still tricky.
-* The method isn't completely uniformly random if the records are of unequal length; we are more likely to land in the middle of a large record than a small one, so this method is biased in favour of records following a large one.
+* The method is not completely uniformly random if the records are of unequal length; we are more likely to land in the middle of a large record than a small one, so this method is biased in favour of records following a large one.
 * Because we are randomly selecting locations, we may end up choosing the same record more than once; this gets more likely as the fraction of records we are reading increases.  In this case, we go back and randomly sample records to make up the difference.  There's no way to know in general if two locations indicate the same record without reading the file at those locations.
 
 ### A Streaming Solution - Reservoir Sampling
@@ -138,7 +138,7 @@ Note that this method does uniformly select records, and can work in pipes or th
 
 ### Timing Results: Workstation Hard Drive
 
-I ran these benchmarks on my desktop workstation, with a physical hard drive. As a quick benchmark for streaming, simply counting the number of lines of the uncompressed (a shade under 4GB) file takes about 25 seconds on this system, which gives us a sense of the best possible streaming time for the file; this is about 160MB/s, a reasonable result (and in fact slightly higher than I would have expected).  Similarly, if we expected an IOPS rate of about 400, then we'd expect to see 0.1% selection to take about 6445/400 ~ 16s.
+I ran these benchmarks on my desktop workstation, with a mechanical hard drive. As a quick benchmark for streaming, simply counting the number of lines of the uncompressed (a shade under 4GB) file takes about 25 seconds on this system, which gives us a sense of the best possible streaming time for the file; this is about 160MB/s, a reasonable result (and in fact slightly higher than I would have expected).  Similarly, if we expected an IOPS rate of about 400, then we'd expect to see 0.1% selection to take about 6445/400 ~ 16s.
 
 
 The file handling and parsing will be significantly slower in python than it would be in C++, which disadvantages the streaming approach (which must process many more records than the seeking approach) somewhat, but our results should be instructive regardless.  
@@ -186,6 +186,7 @@ In practice, because so many parts (servers, disks) need to be coordinated to pe
 
 On the other hand, having a network-attached file system introduces another potential bottleneck; a slow or congested network may mean that the peak bandwidth available for streaming reads at the reader may be decreased, pushing the balance back towards seeking.
 
+
 ## Other File Stores: SSDs
 
 On the other hand, SSDs &ndash; which are ubiquitous in laptops and increasingly common on workstations &ndash; change things quite a bit.  These solid state devices have no moving parts, meaning that there is no delay waiting for media to move to the right location.  As a result, IOPS on these devices can be [significantly higher](http://en.wikipedia.org/wiki/IOPS#Solid-state_devices). Indeed, traditional disk controllers and drivers become the bottleneck; a consumer-grade device plugged in as a disk will still be limited to 500MB/s and say 20k IOPS, while specialized devices that look more directly like external memory can achieve much higher speeds.  (For those who want to know more about SSDs, Lee Hutchinson has an [epic and accessible discussion of how SSDs work](http://arstechnica.com/information-technology/2012/06/inside-the-ssd-revolution-how-solid-state-disks-really-work/) on Ars Technica; the article is from 2012 but very little fundamental has changed in the intervening three years).
@@ -201,20 +202,47 @@ We see that the laptop-grade hardware limits the performance of the streaming re
 However, it's worth noticing that, even with the decrease in bandwidth and startling increase in IOPS, the crossover point between where streaming wins over seeking has only shifted from 0.75% to 3%; beyond that, streaming is clearly the winner.
 
 
-## How to improve seeking results
+## How to further improve seeking results
 
 ### Hardware: SSDs
 
 Mechanical hard drives will always be at a significant disadvantage for random-access workloads compared to SSDs.  While SSDs are significantly more expensive than mechanical HDs for the same capacity, the increase in performance for these workloads (and their lower power draw for laptops) may make them a worthwhile investment for use cases where seeky access can't be avoided.
 
-### Software; multithreading
+### Software: multithreading
 
 It's also possible to improve the performance of the seeky workload through software.  As mentioned before, the file system OS layer and physical layer are highly concurrent, juggling many requests at once and shuffling the order of requests behind the scenes to maximize throughput.  For a highly seeky workflow like this, it's often possible to make use of this concurrency by launching multiple threads, each sending their read request at the same time, and waiting until completion before launching the next.  This greatly increases the chance of finding a read request which can be performed quickly, making fuller use of the disk subsystem.  This significantly increases the complexity of the user software, however, and I won't attempt it for the purposes of this post.
 
-### Software; turning off OS caching
+### Software: turning off OS caching
 
-A smaller possible gain could be realized, for small sample fractions, by hinting to the operating system not to provide expensive caching that won't be used by the seek-heavy access pattern.  This can be done by 
-[opening the file with O_DIRECT](http://man7.org/linux/man-pages/man2/open.2.html), which  or using [posix_fadvise](https://docs.python.org/dev/library/os.html#os.posix_fadvise) which allows a more flexible method for hinting to the operating system not to bother prefetching or caching, respectively, by passing `POSIX_FADV_RANDOM `and `POSIX_FADV_NOREUSE`.  However, this is likely only helpful for very small sample fractions, where seeking is already doing pretty well; for moderate sample fractions, the prefetching can actually help (e.g., that downward trend in time taken at around 10%) so I didn't include this in the benchmark.
+A smaller possible gain could be realized, for small sample fractions, by hinting to the operating system not to provide expensive caching that won't be used by the seek-heavy access pattern.  This can be done by [opening the file with O_DIRECT](http://man7.org/linux/man-pages/man2/open.2.html), which  or using [posix_fadvise](https://docs.python.org/dev/library/os.html#os.posix_fadvise) which allows a more flexible method for hinting to the operating system not to bother prefetching or caching, respectively, by passing `POSIX_FADV_RANDOM `and `POSIX_FADV_NOREUSE`.  However, this is likely only helpful for very small sample fractions, where seeking is already doing pretty well; for moderate sample fractions, the prefetching can actually help (e.g., that downward trend in time taken at around 10%) so I did not include this in the benchmark.
+
+## How to further improve sequential results
+
+### Hardware: SSDs
+
+Workstation-class SSDs, with appropriate controllers, also offer a significant
+increase in streaming bandwidth over their mechanical counterparts, even if the
+increase is proportionally less than that in IOPS.  4-5x increases are not
+uncommon, and those would benefit the reservoir method here.
+
+### Software: Faster parsing
+
+While Python is excellent for many purposes, there is no question but that it is
+slower than compiled languages like C++.  FASTA parsing is quite simple, and
+small for very small sampling fractions, the resevoir solution should be a
+factor of two or more slower than running `wc -l`.  This hurts the reservoir
+sampling more than the streaming, as it must parse ~17 times more records than
+the seeking method.
+
+### Software: turning off OS caching
+
+While prefetching is essential for the streaming performance we have seen,
+there may be some modest benefit to turning off caching of the data we 
+read in; after all, even with the reservoir sampling, we are still only
+processing each record at most once.  Again, we could use
+[posix_fadvise](https://docs.python.org/dev/library/os.html#os.posix_fadvise),
+this time with only `POSIX_FADV_NOREUSE`.  Again, I expect this to be a
+relatively small effect, and so it is not tested here.
 
 ## Conclusion: I/O is Complicated, But Streaming is Pretty Fast
 
