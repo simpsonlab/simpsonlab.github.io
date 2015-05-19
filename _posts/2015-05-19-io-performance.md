@@ -2,7 +2,7 @@
 layout: post
 title: On Random vs. Streaming I/O Performance; Or Seek(), and You Shall Find &ndash; Eventually.
 author: jonathan
-draft: true
+draft: false
 comments: true
 ---
 
