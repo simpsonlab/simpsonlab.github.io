@@ -6,9 +6,9 @@ draft: true
 comments: true
 ---
 
-Last week, Titus Brown asked a question on [twitter](https://twitter.com/ctitusbrown/status/599220862311469056) and [github](https://github.com/dib-lab/khmer/issues/1002) which spurred a lot of discussion &ndash; what was the best way to randomly read a subset of entries in a FASTQ file?  He and others quickly mentioned the two basic approaches &ndash; randomly seeking around in the file, and streaming the file through and selecting at random &ndash; and there were discussions of the merits of each in both forums.
+Last week, [Titus Brown](http://ivory.idyll.org/blog/) asked a question on [twitter](https://twitter.com/ctitusbrown/status/599220862311469056) and [github](https://github.com/dib-lab/khmer/issues/1002) which spurred a lot of discussion &ndash; what was the best way to randomly read a subset of entries in a FASTQ file?  He and others quickly mentioned the two basic approaches &ndash; randomly seeking around in the file, and streaming the file through and selecting at random &ndash; and there were discussions of the merits of each in both forums.
 
-This workload is a great case study for looking some of the ins and outs of I/O performance in general, and the tradeoffs between streaming and random file access.  The results can be a little surprising, and the exact numbers will necessarily be file system dependant: but on hard drives (and even more so on most cluster file systems), seeks will perform surprisingly poorly compared to streaming reads (the "Reservoir" approach in the plot below):
+This workload is a great case study for looking some of the ins and outs of I/O performance in general, and the tradeoffs between streaming and random file access in particular.  The results can be a little surprising, and the exact numbers will necessarily be file system dependant: but on hard drives (and even more so on most cluster file systems), seeks will perform surprisingly poorly compared to streaming reads (the "Reservoir" approach in the plot below):
 
 ![Streaming Reads vs. Seeks](/assets/io/uncompress-seek-vs-stream.png)
 
@@ -22,9 +22,9 @@ Unlike so many other pieces of software we have to deal with daily, the file sys
 
 A hard drive is a physical machine with moving parts, and the file system software stack is built around this (even in situations where this might not make sense any more, like with SSDs - about which more later).  Several metal platters are spinning at speeds from 7,200 to 15,000 revolutions per minute (a dizzying 120-500 revolutions per _second_), and to start any particular read or write operation requires the appropriate sector of the disk being under the read heads; an event that won't happen, on average, until 1 to 4 milliseconds from now.  
 
-Both the drive controller hardware and the operating system work hard to maximize the efficiency of this physical system, re-arranging pending reads and writes in the queue to ensure that requests are processed as quickly as possible; this allows one read request to "jump the queue" if the sector it needs to read from is just about to arrive, rather than having it wait in line, possibly for more than one disk rotation.  While this can greatly help the throughput of a large number of unrelated operations, it can't do much to improve a single threaded program's stream of reads or writes to occur. 
+Both the drive controller hardware and the operating system work hard to maximize the efficiency of this physical system, re-arranging pending reads and writes in the queue to ensure that requests are processed as quickly as possible; this allows one read request to "jump the queue" if the sector it needs to read from is just about to arrive, rather than having it wait in line, possibly for more than one disk rotation.  While this can greatly help the throughput of a large number of unrelated operations, it can't do much to speed a single threaded program's stream of reads or writes. 
  
-This means that, for physical media, there is a limit to the number of (say) read I/O Operations Per Second (IOPS) that can be performed per second; the bottleneck could be at the filesystem level, or the disk controller, but it is normally at the level of the individual hard drive, where the least can be done about it.  As a result, even for quite good, new, hard drives, a [typical performance](http://en.wikipedia.org/wiki/IOPS#Mechanical_hard_drives) might be say 250 IOPS. 
+This means that, for physical media, there is a limit to the number of (say) read I/O Operations Per Second (IOPS) that can be performed; the bottleneck could be at the filesystem level, or the disk controller, but it is normally at the level of the individual hard drive, where the least can be done about it.  As a result, even for quite good, new, hard drives, a [typical performance](http://en.wikipedia.org/wiki/IOPS#Mechanical_hard_drives) might be say 250 IOPS. 
 
 On the other hand, once the sector is under the read head, a lot of data can be pulled in at once.  New hard disks typically have [block sizes](http://en.wikipedia.org/wiki/Disk_sector) of 4KB, and all of that data can be slurped in instantly.  A good hard disk and controller can easily provide sequential read rates (or bandwidth) of over 100MB/s.
 
@@ -42,7 +42,7 @@ In user space, I/O libraries often do their own caching, as well.  C's stdlib, f
 
 None of this caching directly helps us in our immediate problem, since we're not intending to re-read a sequence again and again; we are picking a number of random entries to read.  However, the entire mechanism used for caching recently used data can also be used for presenting data that the operating system and libraries thinks is _going_ to be used _soon_.  This is where the second locality comes in; spatial locality.
 
-The Operating System and libraries make the reasonable assumption that if you are reading one block in a file, there's an excellent chance that you'll be reading the next block shortly afterwards. Since this is such a common scenario, and in fact one of the few workloads that can easily be predicted, the file system (at all levels) supports quite agressive  prefetching, or [read ahead](http://en.wikipedia.org/wiki/Readahead).  This basic idea &ndash; since reading is slow, try to read the next few things ahead of time once the first thing is being read &ndash; is so useful and so common that it is used not just for data on disk, but for data in [RAM](http://en.wikipedia.org/wiki/Prefetch_buffer), links by [web browsers](https://medium.com/@luisvieira_gmr/html5-prefetch-1e54f6dda15d), etc.
+The Operating System and libraries make the reasonable assumption that if you are reading one block in a file, there's an excellent chance that you'll be reading the next block shortly afterwards. Since this is such a common scenario, and in fact one of the few workloads that can easily be predicted, the file system (at all levels) supports quite agressive  prefetching, or [read ahead](http://en.wikipedia.org/wiki/Readahead).  This basic idea &ndash; since reading is slow, try to read the next few things ahead of time, too &ndash; is so useful and so common that it is used not just for data on disk, but for data in [RAM](http://en.wikipedia.org/wiki/Prefetch_buffer), links by [web browsers](https://medium.com/@luisvieira_gmr/html5-prefetch-1e54f6dda15d), etc.
 
 To support this, the lowest levels of the file system (block device drivers, and even the disk and controller hardware) try to lay out sequential data on disk in such a way that when one block is read, the next block is immediately ready to be read, so that only one seek, one IOP, is necessary to begin the read, and then following reads happen more or less "for free".  The higher levels of the stack take advantage of this by explicitly requesting one or many pages worth of data whenever a read occurs, and presents that data in the cache as if it had already been used.  Then this data can be accessed by user software without expensive I/O operations.
 
@@ -52,7 +52,7 @@ In summary, then, prefetching and caching performed by the disk, controller, ope
 
 ## The Random FASTA Entry Problem
 
-To illustrate the performance of both a seeking and sequential streaming method, let's consider a slightly simpler problem than posed.  To avoid the complications with FASTQ, let's consider a sizeable FASTA file ( we take [est.fa from HG19](http://hgdownload.cse.ucsc.edu/goldenpath/hg19/bigZips/est.fa.gz), slightly truncated for the purposes of some of our later tests ).  The final file is about 8,000,000 lines of text, containing some 6,444,875 records.  We consider both compressed and uncompressed versions of the file.
+To illustrate the performance of both a seeking and sequential streaming method, let's consider a slightly simpler problem than posed.  To avoid the complications with FASTQ, let's consider a sizeable FASTA file (we take [est.fa from HG19](http://hgdownload.cse.ucsc.edu/goldenpath/hg19/bigZips/est.fa.gz), slightly truncated for the purposes of some of our later tests).  The final file is about 8,000,000 lines of text, containing some 6,444,875 records.  We consider both compressed and uncompressed versions of the file.
 
 We'll randomly sample $$k$$ records from this file &ndash; 0.1%, 0.2%, 0.5%, 1%, 2%, 5%, 10%, 20%, and 50% of the total number of records $$N$$ &ndash; run for several different trials, and done a few different ways.  We'll consider a seeking solution and a sequential reading solution.
 
@@ -69,11 +69,13 @@ def randomSeek(infile, size, nrecords):
     totrecords = 0
     recordsdict = {}
     while totrecords < nrecords:
+        # generate the random locations
         locations = []
         for i in range(nrecords-totrecords):
             locations.append(int(random.uniform(0,size)))
         locations.sort()
 
+		# read the records immediately following these locations
         records = []
         reader = simplefasta.FastaReader(infile)
         for location in locations:
@@ -82,6 +84,8 @@ def randomSeek(infile, size, nrecords):
             record = reader.readNext()
             recordsdict[record[0]] = record[1]
         totrecords = len(recordsdict)
+        
+    # return a list of records
     records = []
     for k,v in recordsdict.items():
         records.append((k,v))
@@ -199,6 +203,11 @@ Mechanical hard drives will always be at a significant disadvantage for random-a
 ### Software; multithreading
 
 It's also possible to improve the performance of the seeky workload through software.  As mentioned before, the file system OS layer and physical layer are highly concurrent, juggling many requests at once and shuffling the order of requests behind the scenes to maximize throughput.  For a highly seeky workflow like this, it's often possible to make use of this concurrency by launching multiple threads, each sending their read request at the same time, and waiting until completion before launching the next.  This greatly increases the chance of finding a read request which can be performed quickly, making fuller use of the disk subsystem.  This significantly increases the complexity of the user software, however, and I won't attempt it for the purposes of this post.
+
+### Software; turning off OS caching
+
+A smaller possible gain could be realized, for small sample fractions, by hinting to the operating system not to provide expensive caching that won't be used by the seek-heavy access pattern.  This can be done by 
+[opening the file with O_DIRECT](http://man7.org/linux/man-pages/man2/open.2.html), which  or using [posix_fadvise](https://docs.python.org/dev/library/os.html#os.posix_fadvise) which allows a more flexible method for hinting to the operating system not to bother prefetching or caching, respectively, by passing `POSIX_FADV_RANDOM `and `POSIX_FADV_NOREUSE`.  However, this is likely only helpful for very small sample fractions, where seeking is already doing pretty well; for moderate sample fractions, the prefetching can actually help (e.g., that downward trend in time taken at around 10%) so I didn't include this in the benchmark.
 
 ## Conclusion: I/O is Complicated, But Streaming is Pretty Fast
 
