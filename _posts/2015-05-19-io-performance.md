@@ -188,11 +188,18 @@ On the other hand, having a network-attached file system introduces another pote
 
 ## Other File Stores: SSDs
 
-On the other hand, SSDs &ndash; which are ubiquitous in laptops and increasingly common on workstations &ndash; change things quite a bit.  These solid state devices have no moving parts, meaning that there is no delay waiting for media to move to the right location.  As a result, IOPS on these devices can be [significantly higher](http://en.wikipedia.org/wiki/IOPS#Solid-state_devices). Indeed, traditional disk controllers and drivers become the bottleneck; a consumer-grade device plugged in as a disk will still be limited to 500MB/s and say 20k IOPS, while specialized devices that look more directly like external memory can achieve much higher speeds.
+On the other hand, SSDs &ndash; which are ubiquitous in laptops and increasingly common on workstations &ndash; change things quite a bit.  These solid state devices have no moving parts, meaning that there is no delay waiting for media to move to the right location.  As a result, IOPS on these devices can be [significantly higher](http://en.wikipedia.org/wiki/IOPS#Solid-state_devices). Indeed, traditional disk controllers and drivers become the bottleneck; a consumer-grade device plugged in as a disk will still be limited to 500MB/s and say 20k IOPS, while specialized devices that look more directly like external memory can achieve much higher speeds.  (For those who want to know more about SSDs, Lee Hutchinson has an [epic and accessible discussion of how SSDs work](http://arstechnica.com/information-technology/2012/06/inside-the-ssd-revolution-how-solid-state-disks-really-work/) on Ars Technica; the article is from 2012 but very little fundamental has changed in the intervening three years).
 
 At those rates, both streaming and seeking workflows see a performance boost, but the increase is much higher for IOPS.  Rather than streaming a 1000MB file taking roughly as long as 2,500-4,000 seeks, it is now more like 40,000 seeks.  That's still finite, and each seek still takes roughly as much time as reading 25KB of data; but that factor of ten difference in relative rates will change the balance between whether streaming or seeking is most efficient for any given problem. 
 
-(For those who want to know more about SSDs, Lee Hutchinson has an [epic and accessible discussion of how SSDs work](http://arstechnica.com/information-technology/2012/06/inside-the-ssd-revolution-how-solid-state-disks-really-work/) on Ars Technica; the article is from 2012 but very little fundamental has changed in the intervening three years).
+Running this same test on my laptop gives results as shown below:
+
+![SSD: Streaming Reads vs. Seeks](/assets/io/ssd.png)
+
+We see that the laptop-grade hardware limits the performance of the streaming read; bandwidths (and thus the performance of the reservoir sampling) are down by about a factor of 2.  On the other hand, we seem to have gained over a factor of 10 in IOPS, with approximately 3000 effective random reading IOPS.  As a result, the seeking for a 0.1% sampling fraction takes a lightning-fast 2.5 seconds.
+
+However, it's worth noticing that, even with the decrease in bandwidth and startling increase in IOPS, the crossover point between where streaming wins over seeking has only shifted from 0.75% to 3%; beyond that, streaming is clearly the winner.
+
 
 ## How to improve seeking results
 
