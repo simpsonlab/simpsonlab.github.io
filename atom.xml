@@ -19,7 +19,7 @@ layout: null
   {% unless post.draft %}
    <entry>
      <title>{{ post.title }}</title>
-     <link href="{{ post.url }}"/>
+     <link href="http://{{site.url}}{{ post.url }}"/>
      <updated>{{ post.date | date_to_xmlschema }}</updated>
      <id>{{ site.url }}{{ post.id }}</id>
      <content type="html">{{ post.content }}</content>

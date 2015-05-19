@@ -4,7 +4,7 @@
  <title>Simpson Lab Blog</title>
  <link href="http://simpsonlab.github.io/atom.xml" rel="self"/>
  <link href="http://simpsonlab.github.io/"/>
- <updated>2015-05-19T13:17:02-04:00</updated>
+ <updated>2015-05-19T13:25:40-04:00</updated>
  <id>simpsonlab.github.io</id>
  <author>
    <name>Jared Simpson</name>
@@ -15,7 +15,7 @@
   
    <entry>
      <title>On Random vs. Streaming I/O Performance; Or Seek(), and You Shall Find &ndash; Eventually.</title>
-     <link href="/2015/05/19/io-performance/"/>
+     <link href="http://simpsonlab.github.io/2015/05/19/io-performance/"/>
      <updated>2015-05-19T00:00:00-04:00</updated>
      <id>simpsonlab.github.io/2015/05/19/io-performance</id>
      <content type="html"><p>Last week, <a href="http://ivory.idyll.org/blog/">Titus Brown</a> asked a question on <a href="https://twitter.com/ctitusbrown/status/599220862311469056">twitter</a> and <a href="https://github.com/dib-lab/khmer/issues/1002">github</a> which spurred a lot of discussion – what was the best way to randomly read a subset of entries in a FASTQ file?  He and others quickly mentioned the two basic approaches – randomly seeking around in the file, and streaming the file through and selecting at random – and there were discussions of the merits of each in both forums.</p>
@@ -266,7 +266,7 @@ relatively small effect, and so it is not tested here.</p>
   
    <entry>
      <title>Understanding Partial Order Alignment for Multiple Sequence Alignment</title>
-     <link href="/2015/05/01/understanding-poa/"/>
+     <link href="http://simpsonlab.github.io/2015/05/01/understanding-poa/"/>
      <updated>2015-05-01T00:00:00-04:00</updated>
      <id>simpsonlab.github.io/2015/05/01/understanding-poa</id>
      <content type="html"><p>Jared’s <a href="https://github.com/jts/nanopolish">nanopolish</a> tool for
@@ -670,7 +670,7 @@ of the method.</p>
   
    <entry>
      <title>Aligning Nanopore Events to a Reference</title>
-     <link href="/2015/04/08/eventalign/"/>
+     <link href="http://simpsonlab.github.io/2015/04/08/eventalign/"/>
      <updated>2015-04-08T00:00:00-04:00</updated>
      <id>simpsonlab.github.io/2015/04/08/eventalign</id>
      <content type="html"><h2 id="introduction">Introduction</h2>
@@ -831,7 +831,7 @@ gi|556503834|ref|NC_000913.3|   10011   ACCGC   1       c       27490   65.17   
   
    <entry>
      <title>Nanopolish v0.2.0</title>
-     <link href="/2015/03/30/optimizing-hmm/"/>
+     <link href="http://simpsonlab.github.io/2015/03/30/optimizing-hmm/"/>
      <updated>2015-03-30T00:00:00-04:00</updated>
      <id>simpsonlab.github.io/2015/03/30/optimizing-hmm</id>
      <content type="html"><p>This post describes changes I have made to <a href="https://github.com/jts/nanopolish">nanopolish</a>, our HMM-based consensus caller for Oxford Nanopore data. This post can be thought of as a long changelog with background and rationale.</p>
