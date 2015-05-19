@@ -42,7 +42,7 @@ In user space, I/O libraries often do their own caching, as well.  C's stdlib, f
 
 None of this caching directly helps us in our immediate problem, since we're not intending to re-read a sequence again and again; we are picking a number of random entries to read.  However, the entire mechanism used for caching recently used data can also be used for presenting data that the operating system and libraries thinks is _going_ to be used _soon_.  This is where the second locality comes in; spatial locality.
 
-The Operating System and libraries make the reasonable assumption that if you are reading one block in a file, there's an excellent chance that you'll be reading the next block shortly afterwards. Since this is such a common scenario, and in fact one of the few workloads that can easily be predicted, the file system (at all levels) supports quite agressive  prefetching, or [read ahead](http://en.wikipedia.org/wiki/Readahead).  This basic idea &ndash; since reading is slow, try to read the next few things ahead of time, too &ndash; is so useful and so common that it is used not just for data on disk, but for data in [RAM](http://en.wikipedia.org/wiki/Prefetch_buffer), links by [web browsers](https://medium.com/@luisvieira_gmr/html5-prefetch-1e54f6dda15d), etc.
+The Operating System and libraries make the reasonable assumption that if you are reading one block in a file, there's an excellent chance that you'll be reading the next block shortly afterwards. Since this is such a common scenario, and in fact one of the few workloads that can easily be predicted, the file system (at all levels) supports quite agressive  prefetching, or [read ahead](http://en.wikipedia.org/wiki/Readahead).  This basic idea &ndash; since reading is slow, try to read the next few things ahead of time, too &ndash; is so widely useful that it is used not just for data on disk, but for data in [RAM](http://en.wikipedia.org/wiki/Prefetch_buffer), links by [web browsers](https://medium.com/@luisvieira_gmr/html5-prefetch-1e54f6dda15d), etc.
 
 To support this, the lowest levels of the file system (block device drivers, and even the disk and controller hardware) try to lay out sequential data on disk in such a way that when one block is read, the next block is immediately ready to be read, so that only one seek, one IOP, is necessary to begin the read, and then following reads happen more or less "for free".  The higher levels of the stack take advantage of this by explicitly requesting one or many pages worth of data whenever a read occurs, and presents that data in the cache as if it had already been used.  Then this data can be accessed by user software without expensive I/O operations.
 
@@ -76,7 +76,6 @@ def randomSeek(infile, size, nrecords):
         locations.sort()
 
 	# read the records immediately following these locations
-        records = []
         reader = simplefasta.FastaReader(infile)
         for location in locations:
             infile.seek(location,os.SEEK_SET)
@@ -107,10 +106,10 @@ A solution to the $$k$$-random-sampling problem which makes use of streaming inp
 The basic idea is that, for every $$i$$th item seen, it is selected with a probability of $$k/i$$.  Because there's a $$1/(i+1)$$ chance of it being bumped by the next item, then the probability of the $$i$$th item being selected by the end of round $$i+1$$ is 
 
 $$
-P_{i+1}(i) = P_i(i) \times \left (1 - \frac{1}{i+1} \right) = \frac{1}{i} \frac{i}{i+1} = \frac{1}{i+1}
+P_{i+1}(i) = P_i(i) \times \left (1 - \frac{1}{i+1} \right) = \frac{k}{i} \frac{i}{i+1} = \frac{k}{i+1}
 $$
 
-and so on until by the time all $$N$$ items are read, each item has a $$1/N$$ chance of remaining selected.
+and so on until by the time all $$N$$ items are read, each item has a $$k/N$$ chance of being selected.
 
 Our simple implementation follows; we select the first $$k$$ items to fill the reservoir, and then randomly select through the rest of the file.
 
@@ -189,7 +188,7 @@ On the other hand, having a network-attached file system introduces another pote
 
 ## Other File Stores: SSDs
 
-On the other hand, SSDs &ndash; which are ubiquitous in laptops and increasingly common on workstations &ndash; change things quite a bit.  These solid state devices have no moving parts, meaning that there is no delay waiting for media to move to the right location.  As a result, IOPS on these devices can be [significantly higher](http://en.wikipedia.org/wiki/IOPS#Solid-state_devices). Indeed, traditional disk controllers and drivers become the bottleneck; a consumer-grade device plugged in as a disk will still be limited to 500MB/s and say 20k IOPS, while specialized devices that look more directly like external memory can achieve much higher speeds.  (For those who want to know more about SSDs, Lee Hutchinson has an [epic and accessible discussion of how SSDs work](http://arstechnica.com/information-technology/2012/06/inside-the-ssd-revolution-how-solid-state-disks-really-work/) on Ars Technica; the article is from 2012 but very little fundamental has changed in the intervening three years).
+SSDs &ndash; which are ubiquitous in laptops and increasingly common on workstations &ndash; change things quite a bit.  These solid state devices have no moving parts, meaning that there is no delay waiting for media to move to the right location.  As a result, IOPS on these devices can be [significantly higher](http://en.wikipedia.org/wiki/IOPS#Solid-state_devices). Indeed, traditional disk controllers and drivers become the bottleneck; a consumer-grade device plugged in as a disk will still be limited to 500MB/s and say 20k IOPS, while specialized devices that look more directly like external memory can achieve much higher speeds.  (For those who want to know more about SSDs, Lee Hutchinson has an [epic and accessible discussion of how SSDs work](http://arstechnica.com/information-technology/2012/06/inside-the-ssd-revolution-how-solid-state-disks-really-work/) on Ars Technica; the article is from 2012 but very little fundamental has changed in the intervening three years).
 
 At those rates, both streaming and seeking workflows see a performance boost, but the increase is much higher for IOPS.  Rather than streaming a 1000MB file taking roughly as long as 2,500-4,000 seeks, it is now more like 40,000 seeks.  That's still finite, and each seek still takes roughly as much time as reading 25KB of data; but that factor of ten difference in relative rates will change the balance between whether streaming or seeking is most efficient for any given problem. 
 
@@ -214,7 +213,7 @@ It's also possible to improve the performance of the seeky workload through soft
 
 ### Software: turning off OS caching
 
-A smaller possible gain could be realized, for small sample fractions, by hinting to the operating system not to provide expensive caching that won't be used by the seek-heavy access pattern.  This can be done by [opening the file with O_DIRECT](http://man7.org/linux/man-pages/man2/open.2.html), which  or using [posix_fadvise](https://docs.python.org/dev/library/os.html#os.posix_fadvise) which allows a more flexible method for hinting to the operating system not to bother prefetching or caching, respectively, by passing `POSIX_FADV_RANDOM `and `POSIX_FADV_NOREUSE`.  However, this is likely only helpful for very small sample fractions, where seeking is already doing pretty well; for moderate sample fractions, the prefetching can actually help (e.g., that downward trend in time taken at around 10%) so I did not include this in the benchmark.
+A smaller possible gain could be realized, for small sample fractions, by hinting to the operating system not to provide expensive caching that will not be used by the seek-heavy access pattern.  This can be done by [opening the file with O_DIRECT](http://man7.org/linux/man-pages/man2/open.2.html), or using [posix_fadvise](https://docs.python.org/dev/library/os.html#os.posix_fadvise) which allows a more flexible method for hinting to the operating system not to bother prefetching or caching, respectively, by passing `POSIX_FADV_RANDOM `and `POSIX_FADV_NOREUSE`.  However, this is likely only helpful for very small sample fractions, where seeking is already doing pretty well; for moderate sample fractions, the prefetching can actually help (e.g., that downward trend in time taken at around 10%) so I did not include this in the benchmark.
 
 ## How to further improve sequential results
 
@@ -229,19 +228,19 @@ uncommon, and those would benefit the reservoir method here.
 
 While Python is excellent for many purposes, there is no question but that it is
 slower than compiled languages like C++.  FASTA parsing is quite simple, and
-small for very small sampling fractions, the resevoir solution should be a
+for very small sampling fractions, there is no good reason that the resevoir solution should be a
 factor of two or more slower than running `wc -l`.  This hurts the reservoir
-sampling more than the streaming, as it must parse ~17 times more records than
-the seeking method.
+sampling more than the streaming, as the resevoir approach (which parses records which then
+get bumped later) must parse ~17 times more records in this test than the seeking method.
 
 ### Software: turning off OS caching
 
-While prefetching is essential for the streaming performance we have seen,
-there may be some modest benefit to turning off caching of the data we 
+While _prefetching_ is essential for the streaming performance we have seen,
+there may be some modest benefit to turning off _caching_ of the data we 
 read in; after all, even with the reservoir sampling, we are still only
 processing each record at most once.  Again, we could use
 [posix_fadvise](https://docs.python.org/dev/library/os.html#os.posix_fadvise),
-this time with only `POSIX_FADV_NOREUSE`.  Again, I expect this to be a
+this time with only `POSIX_FADV_NOREUSE`.  I again expect this to be a
 relatively small effect, and so it is not tested here.
 
 ## Conclusion: I/O is Complicated, But Streaming is Pretty Fast
