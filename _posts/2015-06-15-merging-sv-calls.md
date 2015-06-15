@@ -2,7 +2,7 @@
 layout: post
 title: Merging Structural Variant Calls from Different Callers
 author: jonathan
-draft: true
+draft: false
 comments: true
 ---
 
@@ -10,9 +10,10 @@ As part of the work of the [Pancancer variant-calling working
 group](http://pancancer.info/variant_calling.html), we needed to merge the
 results of variant calls from a wide range of different packages to compare
 their results and select interesting sites for lab validation.  This is a 
-more subtle procedure than it sounds like, and we could not find any one 
+more subtle procedure than it sounds, and we could not find any one 
 place where all the necessary information was documented, so we wrote up 
-our process here.
+our process here.  Code that implements this part of our analysis pipeline
+can be found on [GitHub](https://github.com/ljdursi/mergevcf).
 
 ## Simple Variants - SNVs, Indels
 
