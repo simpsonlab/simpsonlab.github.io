@@ -38,7 +38,7 @@ Temporal locality is handled through caching; data that is read in is kept handy
 
 In user space, I/O libraries often do their own caching, as well.  C's stdlib, for instance, will cache substantial amounts of recently used data; and so, by extension, will everything built upon it (iostreams in C++, or lines of data seen by Python).  The various players are shown below in this diagram from IBM's DeveloperWorks: 
 
-{% include image.html src="https://www.ibm.com/developerworks/library/l-linux-filesystem/figure1.gif" caption="File System Stack, from IBM DeveloperWorks: http://www.ibm.com/developerworks/library/l-linux-filesystem/" %}
+{% include image.html src="http://www.ibm.com/developerworks/library/l-virtual-filesystem-switch/figure8.gif" caption="File System Stack, from IBM DeveloperWorks: http://www.ibm.com/developerworks/library/l-linux-filesystem-switch/" %}
 
 None of this caching directly helps us in our immediate problem, since we're not intending to re-read a sequence again and again; we are picking a number of random entries to read.  However, the entire mechanism used for caching recently used data can also be used for presenting data that the operating system and libraries thinks is _going_ to be used _soon_.  This is where the second locality comes in; spatial locality.
 
