@@ -4,13 +4,15 @@
  <title>Simpson Lab Blog</title>
  <link href="http://simpsonlab.github.io/atom.xml" rel="self"/>
  <link href="http://simpsonlab.github.io/"/>
- <updated>2015-06-15T17:04:03-04:00</updated>
+ <updated>2015-10-07T16:12:29-04:00</updated>
  <id>simpsonlab.github.io</id>
  <author>
    <name>Jared Simpson</name>
    <email></email>
  </author>
 
+ 
+  
  
   
    <entry>
@@ -297,8 +299,8 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
 <p>In user space, I/O libraries often do their own caching, as well.  C’s stdlib, for instance, will cache substantial amounts of recently used data; and so, by extension, will everything built upon it (iostreams in C++, or lines of data seen by Python).  The various players are shown below in this diagram from IBM’s DeveloperWorks:</p>
 
 <figure>
-    <img src="https://www.ibm.com/developerworks/library/l-linux-filesystem/figure1.gif" alt="File System Stack, from IBM DeveloperWorks: http://www.ibm.com/developerworks/library/l-linux-filesystem/" />
-    <figcaption style="font-style:italic; font-size:75%">File System Stack, from IBM DeveloperWorks: http://www.ibm.com/developerworks/library/l-linux-filesystem/</figcaption>
+    <img src="http://www.ibm.com/developerworks/library/l-virtual-filesystem-switch/figure8.gif" alt="File System Stack, from IBM DeveloperWorks: http://www.ibm.com/developerworks/library/l-linux-filesystem-switch/" />
+    <figcaption style="font-style:italic; font-size:75%">File System Stack, from IBM DeveloperWorks: http://www.ibm.com/developerworks/library/l-linux-filesystem-switch/</figcaption>
 </figure>
 
 <p>None of this caching directly helps us in our immediate problem, since we’re not intending to re-read a sequence again and again; we are picking a number of random entries to read.  However, the entire mechanism used for caching recently used data can also be used for presenting data that the operating system and libraries thinks is <em>going</em> to be used <em>soon</em>.  This is where the second locality comes in; spatial locality.</p>
