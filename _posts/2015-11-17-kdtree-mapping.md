@@ -34,10 +34,10 @@ that looks something like this:
 
 | kmer  | mean  |  std dev  |
 | ----- | ----- | --------- |
-| AAAAA | 70.24 | ± 0.95 pA |
-| AAAAC | 66.13 | ± 0.75 pA |
-| AAAAG | 70.23 | ± 0.76 pA |
-| AAAAT | 69.25 | ± 0.68 pA |
+| AAAAA | 70.24 | &plusmn; 0.95 pA |
+| AAAAC | 66.13 | &plusmn; 0.75 pA |
+| AAAAG | 70.23 | &plusmn; 0.76 pA |
+| AAAAT | 69.25 | &plusmn; 0.68 pA |
 | ...   | ...   | ...       |
 
 and using such a pore model it&#8217;s fairly straightforward to
@@ -185,7 +185,7 @@ events to model events gives a good starting point for calibration.
 
 ### Proof of concept
 
-A simple proof of concept of using spatial indexing to approxmiately map squiggle data can be found [on github](https://github.com/ljdursi/simple-squiggle-pseudomapper).  Its&#8217; written in python, and has `scipy` and `h5py` as dependencies.
+A simple proof of concept of using spatial indexing to approxmiately map squiggle data can be found [on github](https://github.com/ljdursi/simple-squiggle-pseudomapper).  It&#8217;s written in python, and has `scipy` and `h5py` as dependencies.
 
 As a spatial index, it uses a version of a [k-d tree](https://en.wikipedia.org/wiki/K-d_tree) (`scipy.spatial.cKDTree`), which is a very versatile and widely used (and so well-optimized) spatial index widely used in machine learning methods amongst others; different structures may have advantages for this application.
 
