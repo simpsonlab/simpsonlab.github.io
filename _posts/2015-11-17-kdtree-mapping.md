@@ -26,18 +26,18 @@ sequencers really shines.
 This data has to be interpreted in terms of a particular model of
 the interaction of the pore and the strand of DNA; such a pore model
 gives, amongst other things, an expected signal mean and standard
-deviation for currents through the pore when a given _k_mer is in
-the pore (for the MinION devices, pore models typically use k=5 or
+deviation for currents through the pore when a given $$k$$mer is in
+the pore (for the MinION devices, pore models typically use $$k$$=5 or
 6).  So a pore model might be, for k=5, a table with 1024 entries
 that looks something like this:
 
 
 | kmer  | mean  |  std dev  |
 | ----- | ----- | --------- |
-| AAAAA | 70.24 | Â± 0.95 pA |
-| AAAAC | 66.13 | Â± 0.75 pA |
-| AAAAG | 70.23 | Â± 0.76 pA |
-| AAAAT | 69.25 | Â± 0.68 pA |
+| AAAAA | 70.24 | ± 0.95 pA |
+| AAAAC | 66.13 | ± 0.75 pA |
+| AAAAG | 70.23 | ± 0.76 pA |
+| AAAAT | 69.25 | ± 0.68 pA |
 | ...   | ...   | ...       |
 
 and using such a pore model it&#8217;s fairly straightforward to
@@ -45,14 +45,14 @@ go from a sequence to an expected set of signal levels from the
 sequencer: so, say, for the 10-base sequence AAAAACGTCC and the
 above 5-mer pore model we&#8217;d expect 6 events (10-5+1) that look like:
 
-| event  |  kmer | mean     | range (1 $$\sigma$$)|
+| event  |  kmer | mean     | range (1$$\sigma$$)|
 | ------ | ----- | -------- | ---------------- |
-| *e**1* | AAAAA |  70.2 pA |  69.3 -  71.2 pA |
-| *e**2* | AAAAC |  66.1 pA |  65.4 -  66.9 pA |
-| *e**3* | AAACG |  62.8 pA |  62.0 -  63.6 pA |
-| *e**4* | AACGT |  67.6 pA |  66.3 -  68.9 pA |
-| *e**5* | ACGTC |  56.6 pA |  54.5 -  58.7 pA |
-| *e**6* | CGTCC |  49.9 pA |  49.1 -  50.7 pA |
+| *e1* | AAAAA |  70.2 pA |  69.3 -  71.2 pA |
+| *e2* | AAAAC |  66.1 pA |  65.4 -  66.9 pA |
+| *e3* | AAACG |  62.8 pA |  62.0 -  63.6 pA |
+| *e4* | AACGT |  67.6 pA |  66.3 -  68.9 pA |
+| *e5* | ACGTC |  56.6 pA |  54.5 -  58.7 pA |
+| *e6* | CGTCC |  49.9 pA |  49.1 -  50.7 pA |
 
 Using those models, plus HMMs and a tonne of math, Jared&#8217;s
 [nanopolish](https://github.com/jts/nanopolish) tool has had enormous
@@ -127,7 +127,7 @@ So to map event data, one can:
     * Find a most likely starting point for the read in the reference, with a quality score.
 
 Note that one has to explicitly index both the forward and reverse
-strands of the reference, since you don&#8217t; _a priori_ know
+strands of the reference, since you don&#8217;t _a priori_ know
 what the &ldquo;reverse complement&rdquo; of 65.5&nbsp;pA is.  One
 also has to generate multiple indices; for 2D ONT reads, there is
 a pore model for the template strand of a read, and typically two
@@ -169,7 +169,7 @@ increase specificity of the match, higher $$k$$ helps as well.
 
 ### Normalizing the signal levels
 
-One issue we havent&#8217; mentioned is that the raw nanopore data needs
+One issue we haven&#8217;t mentioned is that the raw nanopore data needs
 calibration to be compared to the model; there is an additive shift
 and a multiplicative scale that has to be taken into account.  (There
 is also a drift over time, which is typically not important for
@@ -194,7 +194,7 @@ Running the `index-and-map.sh` script generates an index for the provided `ecoli
 Even doing the simplest thing possible for mapping works surprisingly well.  Using the same sort of approach as the first steps of the Sovic _et al._ method[^1], we just:
 
 * Use the default k-d tree parameters (which almost certainly isn&#8217;t right, particularly the distance measure) 
-* Consider bins of starting positions on the reference, of size ~10,000pb, a typical read size 
+* Consider bins of starting positions on the reference, of size ~10,000bp, a typical read size 
 * For each $$d$$-point in the read,
     * Take the closest match to each $$d$$-point (or all within some distance) 
     * For each match, add a score to the bin corresponding to the implied starting position of the read on the reference; a higher score for a closer match
@@ -214,7 +214,7 @@ data is more problematic because of higher skip/stop rates.
 ![kd-tree approximate mapping vs BWA MEM mapping positions](/assets/kdtreemapping/dotplot.png)
 
 Of course, while 95-99% (Q13-Q20) mapping accuracy on _E. coli_ is
-a cute outcome from such a simple approach, it isnt&#8217; nearly
+a cute outcome from such a simple approach, it isn&#8217t; nearly
 enough; with $$d=8$$ and $$k=6$$, wer&#8217;e working with seeds of
 size 14, which would typically be unique in the _E. coli_ reference,
 but certainly wouldn&#8217;t be in the human genome, or for metageomic
@@ -222,6 +222,7 @@ applications.
 
 To improve accuracy, we need to go further than just summing scores
 of individual seed matches, about which we plan to write more shortly.
+
 ---
 
 ### References
