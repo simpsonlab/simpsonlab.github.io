@@ -45,7 +45,7 @@ go from a sequence to an expected set of signal levels from the
 sequencer: so, say, for the 10-base sequence AAAAACGTCC and the
 above 5-mer pore model we&#8217;d expect 6 events (10-5+1) that look like:
 
-| event  |  kmer | mean     | range (1 $\sigma$)|
+| event  |  kmer | mean     | range (1 $$\sigma$$)|
 | ------ | ----- | -------- | ---------------- |
 | *e**1* | AAAAA |  70.2 pA |  69.3 -  71.2 pA |
 | *e**2* | AAAAC |  66.1 pA |  65.4 -  66.9 pA |
@@ -81,7 +81,7 @@ On the other hand, a flurry of recent important papers and software[^2]
 [^3] [^4], discussed in some informative
 [blog](http://robpatro.com/blog/?p=248)
 [posts](https://liorpachter.wordpress.com/2015/11/01/what-is-a-read-mapping/),
-have demonstrated the usefullness of approximate read mapping.  In
+have demonstrated the usefulness of approximate read mapping.  In
 our case, mapping to an approximate region of a reference would
 allow exact but computationally expensive methods like `nanopolish
 eventalign` to produce precise alignments, or simple assignment may
@@ -93,41 +93,41 @@ So an output approximate mapping would be valuable, but the issues remains of ho
 
 Importantly, while any individual event is very difficult to assign
 with precision, sequences of events are less ambiguous, as any given
-event is followed, with high probabilty, by one of only four other
+event is followed, with high probability, by one of only four other
 events.  Thus, by examining tuples of events, one can greatly
 increase specificity.
 
 And there are well-developed sets of techniques for looking up lists
-of $d$ floating point values to look for candidate matches: [spatial
+of $$d$$ floating point values to look for candidate matches: [spatial
 indexes](https://en.wikipedia.org/wiki/Spatial_database), where
-each query or match is considered as a point in $d$-dimensional
+each query or match is considered as a point in $$d$$-dimensional
 space, and the goal is to return either some number of nearest
 points (k-Nearest-Neighbours, or [kNN queries](https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm)), or
 all matches within some, typically euclidean, distance.
 
 To see how this would work, consider indexing the sequence above,
-AAAAACGTCC, in a spatial index with $d=2$.  There are a total of 6
+AAAAACGTCC, in a spatial index with $$d=2$$.  There are a total of 6
 events, so wed&#8217; have 5 points (6-2+1), each points in 2-dimensional
 space; 4 are plotted below (the other falls out of the range of the
 plot)
 
 ![2D Spatial Query](/assets/kdtreemapping/2d-spatial-query.png)
 
-and a query for $d$ read events that could be matched by (69.5, 67), the blue point, would return the nearest match (70.2, 66.1) corresponding to the $k+d-1$-mer AAAAAC.
+and a query for $$d$$ read events that could be matched by (69.5, 67), the blue point, would return the nearest match (70.2, 66.1) corresponding to the $$k+d-1$$-mer AAAAAC.
 
 So to map event data, one can:
 
 * Generate an index:
-    * Generate all overlapping tuples of $d$ kmers from a reference
-    * Using a pore model, convert those into points in $d$-space
+    * Generate all overlapping tuples of $$d$$ kmers from a reference
+    * Using a pore model, convert those into points in $$d$$-space
     * Create a spatial index of those points, 
 * For every read:
-    * Take every overlapping set of $d$ events
+    * Take every overlapping set of $$d$$ events
     * Look it up in a spatial index
     * Find a most likely starting point for the read in the reference, with a quality score.
 
 Note that one has to explicitly index both the forward and reverse
-strands of the reference, since you dont&#8217; _a priori_ know
+strands of the reference, since you don&#8217t; _a priori_ know
 what the &ldquo;reverse complement&rdquo; of 65.5&nbsp;pA is.  One
 also has to generate multiple indices; for 2D ONT reads, there is
 a pore model for the template strand of a read, and typically two
@@ -137,35 +137,35 @@ so one needs three indexes in total to query.
 
 ### What dimension to choose?
 
-To test this approach, you have to choose a $d$ to use.  On the one
+To test this approach, you have to choose a $$d$$ to use.  On the one
 hand, you would like to choose as large a dimension as you can; the
-larger $k+d-1$ is, the more unique each seed is and the fewer places
+larger $$k+d-1$$ is, the more unique each seed is and the fewer places
 it will occur in any reference sequence.
 
 On the other hand, two quite different constraints put a strong upper limit on the dimensions that will be useful:
 
 * The [curse of dimensionality](https://en.wikipedia.org/wiki/Curse_of_dimensionality) -
-in high spatial dimensions, nearest-neigbhour searching is extremely
-inefficient, because distance loses its descriminative power.  (Most
-things are &ldquo;close&rdquo; to each other in 100-dmensional
+in high spatial dimensions, nearest-neighbour searching is extremely
+inefficient, because distance loses its discriminative power.  (Most
+things are &ldquo;close&rdquo; to each other in 100-dimensional
 space; there are a lot of routes you can take!)  As a practical
-matter, for most spatial index implementations, for $d > 15-20$ or
+matter, for most spatial index implementations, for $$d > 15-20$$ or
 so you might as well just do a linear search over all possible
 items;
 * Current approaches to segmentation mean that ONT data has very
 frequent &lsquo;stops&rsquo; and &lsquo;skips&rsquo; - that is,
-events are supriously either inserted or deleted from the data.
+events are spuriously either inserted or deleted from the data.
 Exactly as with noisy basecalled sequences, this strongly limits
 the length of sequence that can be usefully used as seeds.  As we
 see below for one set of _E. coli_ data, there is probably not much
-point in using $d \ge 10$ even for template-strand data, as the
+point in using $$d \ge 10$$ even for template-strand data, as the
 median &ldquo;dmer&rdquo; will have an insertion/deletion in it.
 
 ![Distribution of lengths of continuous move events](/assets/kdtreemapping/events-per-stopskip.png)
 
-For these two reasons, we&#8217;ve been playing with $d = 7-8$.  Il&#8217;l
-note that while increasing $d$ is the most obvious knob to turn to
-increase specificity of the match, higher $k$ helps as well.
+For these two reasons, we&#8217;ve been playing with $$d = 7-8$$.  Il&#8217;l
+note that while increasing $$d$$ is the most obvious knob to turn to
+increase specificity of the match, higher $$k$$ helps as well.
 
 ### Normalizing the signal levels
 
@@ -177,7 +177,7 @@ single reads but matters if one is comparing across reads).
 
 A very simple &ldquo;methods of moments&rdquo; calculation works
 surprisingly well for long-enough reads, certainly well enough to
-start an interative process; for any given model one is trying to
+start an iterative process; for any given model one is trying to
 fit a read to, rescaling the mean and standard deviation of read
 events to model events gives a good starting point for calibration.
 
@@ -187,16 +187,16 @@ events to model events gives a good starting point for calibration.
 
 A simple proof of concept of using spatial indexing to approxmiately map squiggle data can be found [on github](https://github.com/ljdursi/simple-squiggle-pseudomapper).  Its&#8217; written in python, and has `scipy` and `h5py` as dependencies.
 
-As a spatial index, it uses a versino of a [k-d tree](https://en.wikipedia.org/wiki/K-d_tree) (`scipy.spatial.cKDTree`), which is a very versatile and widely used (and so well-optimized) spatial index widely used in machine learning methods amongst others; different structures may have advantages for this application.
+As a spatial index, it uses a version of a [k-d tree](https://en.wikipedia.org/wiki/K-d_tree) (`scipy.spatial.cKDTree`), which is a very versatile and widely used (and so well-optimized) spatial index widely used in machine learning methods amongst others; different structures may have advantages for this application.
 
 Running the `index-and-map.sh` script generates an index for the provided `ecoli.fa` reference - about 1 minute per pore model - and then maps the 10 reads provided of both older 5mer and newer 6mer MAP data.  Mapping each read takes about 6 seconds per read per pore model; this involves lots of python list manipulations so could fairly straightforwardly be made much faster.  
 
-Even doing the simplest thing possible for mapping works suprisingly well.  Using the same sort of approach as the first steps of the Sovic _et al._ method[^1], we just:
+Even doing the simplest thing possible for mapping works surprisingly well.  Using the same sort of approach as the first steps of the Sovic _et al._ method[^1], we just:
 
 * Use the default k-d tree parameters (which almost certainly isn&#8217;t right, particularly the distance measure) 
 * Consider bins of starting positions on the reference, of size ~10,000pb, a typical read size 
-* For each $d$-point in the read,
-    * Take the closest match to each $d$-point (or all within some distance) 
+* For each $$d$$-point in the read,
+    * Take the closest match to each $$d$$-point (or all within some distance) 
     * For each match, add a score to the bin corresponding to the implied starting position of the read on the reference; a higher score for a closer match
 * Report the best match starting point
 
@@ -215,14 +215,13 @@ data is more problematic because of higher skip/stop rates.
 
 Of course, while 95-99% (Q13-Q20) mapping accuracy on _E. coli_ is
 a cute outcome from such a simple approach, it isnt&#8217; nearly
-enough; with $d=8$ and $k=6$, wer&#8217;e working with seeds of
+enough; with $$d=8$$ and $$k=6$$, wer&#8217;e working with seeds of
 size 14, which would typically be unique in the _E. coli_ reference,
 but certainly wouldn&#8217;t be in the human genome, or for metageomic
 applications.
 
 To improve accuracy, we need to go further than just summing scores
-of individal seed matches, about which we plan to write more shortly.
-
+of individual seed matches, about which we plan to write more shortly.
 ---
 
 ### References
