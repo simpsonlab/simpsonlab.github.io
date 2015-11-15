@@ -193,14 +193,11 @@ Running the `index-and-map.sh` script generates an index for the provided `ecoli
 
 Even doing the simplest thing possible for mapping works suprisingly well.  Using the same sort of approach as the first steps of the Sovic _et al._ method[^1], we just:
 
-* Use the default k-d tree parameters (which almost certainly
-isn&#8217;t right, particularly the distance measure) * Consider
-bins of starting positions on the reference, of size ~10,000pb, a
-typical read size * For each $d$-point in the read,
-    * Take the closest match to each $d$-point (or all within some
-    distance) * For each match, add a score to the bin corresponding
-    to the implied starting position of the read on the reference;
-    a higher score for a closer match
+* Use the default k-d tree parameters (which almost certainly isn&#8217;t right, particularly the distance measure) 
+* Consider bins of starting positions on the reference, of size ~10,000pb, a typical read size 
+* For each $d$-point in the read,
+    * Take the closest match to each $d$-point (or all within some distance) 
+    * For each match, add a score to the bin corresponding to the implied starting position of the read on the reference; a higher score for a closer match
 * Report the best match starting point
 
 And even this is enough to reach something like 95% mapping accuracy
