@@ -163,7 +163,7 @@ median &ldquo;dmer&rdquo; will have an insertion/deletion in it.
 
 ![Distribution of lengths of continuous move events](/assets/kdtreemapping/events-per-stopskip.png)
 
-For these two reasons, we&#8217;ve been playing with $$d = 7-8$$.  Il&#8217;l
+For these two reasons, we&#8217;ve been playing with $$d = 7-8$$.  I&#8217;ll
 note that while increasing $$d$$ is the most obvious knob to turn to
 increase specificity of the match, higher $$k$$ helps as well.
 
@@ -218,7 +218,7 @@ data is more problematic because of higher skip/stop rates.
 ![kd-tree approximate mapping vs BWA MEM mapping positions](/assets/kdtreemapping/dotplot.png)
 
 Of course, while 95-99% (Q13-Q20) mapping accuracy on _E. coli_ is
-a cute outcome from such a simple approach, it isn&#8217t; nearly
+a cute outcome from such a simple approach, it isn&#8217;t nearly
 enough; with $$d=8$$ and $$k=6$$, wer&#8217;e working with seeds of
 size 14, which would typically be unique in the _E. coli_ reference,
 but certainly wouldn&#8217;t be in the human genome, or for metageomic
