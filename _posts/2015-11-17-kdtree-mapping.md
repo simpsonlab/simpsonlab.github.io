@@ -200,7 +200,11 @@ Even doing the simplest thing possible for mapping works surprisingly well.  Usi
     * For each match, add a score to the bin corresponding to the implied starting position of the read on the reference; a higher score for a closer match
 * Report the best match starting point
 
-And even this is enough to reach something like 95% mapping accuracy
+For the cases included, you can fairly clearly see in the plots generated (such as those immediately below) that some locations are very securely identified, and others less so:
+
+![Scores for each bin](/assets/kdtreemapping/scores.png)
+
+Considering all matching points within a given radius rather than just the closest (which is very sensitive to the initial recalibrating)  improves things further.  This simple approach is enough to reach something like 95% mapping accuracy
 on the full set of 5mer ecoli data (here an accurate map is considered
 to be within a couple of bins of the BWA MEM location mapped from
 the basecalled results; within that range, a number of finishing
