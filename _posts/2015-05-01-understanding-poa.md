@@ -32,8 +32,9 @@ CCGCTTTTCCGC
 CCGCAAAACCGC
 </pre>
 
-There is ambiguity in selecting a single, best alignment between this
-pair of sequences; for instance below are 4 of 2<sup>8</sup>&nbsp;=&nbsp;256 nearly equivalent
+There is ambiguity in selecting a single, best alignment between
+this pair of sequences; for instance below are 4 of
+<s>2<sup>8</sup>&nbsp;=&nbsp;256</s> 8 choose 4 = 105 nearly equivalent
 ways of expressing this pairwise alignment. The best alignment will
 depend on the particular gap-scoring scheme used.
 
