@@ -87,7 +87,8 @@ allow exact but computationally expensive methods like `nanopolish
 eventalign` to produce precise alignments, or simple assignment may
 be all that is necessary for other applications.
 
-So an output approximate mapping would be valuable, but the issues remains of how to disambiguate the signal level values.  
+So an output approximate mapping would be valuable, but the issues
+remains of how to disambiguate the signal level values.
 
 ### Spatial Indexing
 
@@ -111,7 +112,7 @@ events, so wed&#8217; have 5 points (6-2+1), each points in 2-dimensional
 space; 4 are plotted below (the other falls out of the range of the
 plot)
 
-![2D Spatial Query](/assets/kdtreemapping/2d-spatial-query.png)
+<img src="/assets/kdtreemapping/2d-spatial-query.png" alt="2D Spatial Query" style="width: 478px; margin-left:auto; margin-right:auto;"/>
 
 and a query for $$d$$ read events that could be matched by (69.5, 67), the blue point, would return the nearest match (70.2, 66.1) corresponding to the $$k+d-1$$-mer AAAAAC.
 
@@ -161,7 +162,7 @@ see below for one set of _E. coli_ data, there is probably not much
 point in using $$d \ge 10$$ even for template-strand data, as the
 median &ldquo;dmer&rdquo; will have an insertion/deletion in it.
 
-![Distribution of lengths of continuous move events](/assets/kdtreemapping/events-per-stopskip.png)
+<img src="/assets/kdtreemapping/events-per-stopskip.png" alt="Distribution of lengths of continuous move events" style="width: 550px; margin-left:auto; margin-right:auto;"/>
 
 For these two reasons, we&#8217;ve been playing with $$d = 7-8$$.  I&#8217;ll
 note that while increasing $$d$$ is the most obvious knob to turn to
@@ -185,47 +186,271 @@ events to model events gives a good starting point for calibration.
 
 ### Proof of concept
 
-A simple proof of concept of using spatial indexing to approxmiately map squiggle data can be found [on github](https://github.com/ljdursi/simple-squiggle-pseudomapper).  It&#8217;s written in python, and has `scipy` and `h5py` as dependencies.
+A simple proof of concept of using spatial indexing to approxmiately map squiggle data can be found [on github](https://github.com/ljdursi/simple-squiggle-pseudomapper).  It&#8217;s written in python, and has `scipy`, `h5py`, and `matplotlib` as dependencies.  Note that as implemented, it is absurdly memory-hungry, and definitely requires a numpy and scipy built against a good BLAS implementation.
 
 As a spatial index, it uses a version of a [k-d tree](https://en.wikipedia.org/wiki/K-d_tree) (`scipy.spatial.cKDTree`), which is a very versatile and widely used (and so well-optimized) spatial index widely used in machine learning methods amongst others; different structures may have advantages for this application.
 
 Running the `index-and-map.sh` script generates an index for the provided `ecoli.fa` reference - about 1 minute per pore model - and then maps the 10 reads provided of both older 5mer and newer 6mer MAP data.  Mapping each read takes about 6 seconds per read per pore model; this involves lots of python list manipulations so could fairly straightforwardly be made much faster.  
 
-Even doing the simplest thing possible for mapping works surprisingly well.  Using the same sort of approach as the first steps of the Sovic _et al._ method[^1], we just:
+Doing the simplest thing possible for mapping works surprisingly well.  Using the same sort of approach as the first steps of the Sovic _et al._ method[^1], we just:
 
 * Use the default k-d tree parameters (which almost certainly isn&#8217;t right, particularly the distance measure) 
-* Consider bins of starting positions on the reference, of size ~10,000bp, a typical read size 
+* Consider overlapping bins of starting positions on the reference, of size ~15,000bp, a typical read size 
 * For each $$d$$-point in the read,
     * Take the closest match to each $$d$$-point (or all within some distance) 
     * For each match, add a score to the bin corresponding to the implied starting position of the read on the reference; a higher score for a closer match
 * Report the best match starting point
 
-For the cases included, you can fairly clearly see in the plots generated (such as those immediately below) that some locations are very securely identified, and others less so:
+Let&#8217;s take a look at the initial output for the older SQK005 ecoli data:
+{% highlight bash %}
+$ ./index-and-map.sh
 
-![Scores for each bin](/assets/kdtreemapping/scores.png)
+5mer data: 
 
-Considering all matching points within a given radius rather than just the closest (which is very sensitive to the initial recalibrating)  improves things further.  This simple approach is enough to reach something like 95% mapping accuracy
-on the full set of 5mer ecoli data (here an accurate map is considered
-to be within a couple of bins of the BWA MEM location mapped from
-the basecalled results; within that range, a number of finishing
-procedures could efficiently get a precise alignment if needed).
+Indexing : model models/5mer/template.model, dimension 8
+python spatialindex.py --dimension 8 ecoli.fa models/5mer/template.model indices/ecoli-5mer-template
+
+real    0m53.685s
+user    0m48.460s
+sys 0m1.092s
+Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
+time python ./mapread.py --plot save --plotdir plots --closest   --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
+
+real    1m9.141s
+user    1m6.236s
+sys 0m0.612s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch401_file98   19          2328329  2328348  6.160000
+ch34_file53    228         1128120  1128348  11.235000
+ch464_file15   2031        2195379  2193348  14.782000
+ch182_file148  2441        2767555  2769996  17.120000
+ch461_file9    3105        2195243  2198348  8.749000
+ch277_file143  5819        3079177  3084996  17.164000
+ch498_file171  6130        3793866  3799996  11.916000
+ch222_file28   6765        2803231  2809996  11.152000
+ch80_file64    10649       4369347  4379996  7.469000
+ch395_file89   10828       2069168  2079996  9.517000
+Indexing : model models/5mer/complement.model, dimension 8
+python spatialindex.py --dimension 8 ecoli.fa models/5mer/complement.model indices/ecoli-5mer-complement
+
+real    0m50.793s
+user    0m47.380s
+sys 0m0.840s
+Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
+time python ./mapread.py --plot save --plotdir plots --closest   --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx  --complementindex indices/ecoli-5mer-complement.kdtidx ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-complement-005.txt
+
+real    1m37.843s
+user    1m37.424s
+sys 0m0.756s
+
+Template+Complement Alignements
+Read           Difference  BWA      KDTree   zscore
+ch34_file53    228         1128120  1128348  11.235000
+ch464_file15   2031        2195379  2193348  14.782000
+ch182_file148  2441        2767555  2769996  17.120000
+ch461_file9    3105        2195243  2198348  10.378000
+ch401_file98   5019        2328329  2333348  7.516000
+ch277_file143  5819        3079177  3084996  17.164000
+ch498_file171  6130        3793866  3799996  11.916000
+ch222_file28   6765        2803231  2809996  11.152000
+ch80_file64    10649       4369347  4379996  7.469000
+ch395_file89   10828       2069168  2079996  9.517000
+{% endhighlight %}
+The 6mer data gives similar results. 
+
+We see a couple of things here:
+
+* Adding the complement strand does almost nothing for the accuracy,
+but requires substantially more memory and compute time, as multiple
+indicies must be loaded and used up, and all candidate complement
+indicies must be compared against each other.  Because of this and
+the typically higher skip/stay rates for complement strands, we will use the template
+strand only for the rest of this post;
+* Since we are simply assigning starting bins at this point, 
+any assignments within the bin size are equally accurate; here, all
+of the reads were correctly assigned to the starting bin.
+* The zscore here is a very crude measure of how much the assignment
+stands out over the background (but not necessarily how it compares
+to other candidate mappings); some of these very simple pseudo-mappings 
+are relatively securely identified, and others less so.  The sum-of-scores for
+the reads with the best and worst zscore results are plotted below; no prize for
+guessing which is which:
+
+<table>
+<tr>
+<td> <img src="/assets/kdtreemapping/ch182_file148_simple.png" alt="ch182_file148" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/ch401_file98_simple.png" alt="ch182_file148" style="width: 400px;"/> </td>
+</tr>
+</table>
+
+
+Because many levels are clustered near ~60-70pA, many dmers are quite
+close to each other, and choosing simply the closest d-point is unlikely
+to give a robust result.  Examining all possible matches in the spatial
+index within some given radius reduces the noise somewhat, at a modest
+increase in compute time:
+
+{% highlight bash %}
+$ ./index-and-map.sh noclosest templateonly
+
+5mer data: 
+
+Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
+time python ./mapread.py --plot save --plotdir plots    --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
+
+real    1m32.260s
+user    1m30.804s
+sys 0m0.948s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch34_file53    228         1128120  1128348  17.545000
+ch461_file9    1895        2195243  2193348  11.832000
+ch464_file15   2031        2195379  2193348  19.064000
+ch401_file98   5019        2328329  2333348  11.723000
+ch498_file171  6130        3793866  3799996  15.583000
+ch222_file28   6765        2803231  2809996  15.847000
+ch182_file148  7441        2767555  2774996  20.122000
+ch80_file64    10649       4369347  4379996  12.202000
+ch277_file143  10819       3079177  3089996  18.217000
+ch395_file89   10828       2069168  2079996  12.179000
+{% endhighlight %}
+
+Note the increase in zscores; the same two reads are plotted:
+
+<table>
+<tr>
+<td> <img src="/assets/kdtreemapping/ch182_file148_noclosest.png" alt="ch182_file148" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/ch401_file98_noclosest.png" alt="ch182_file148" style="width: 400px;"/> </td>
+</tr>
+</table>
 
 With a few other tweaks - keeping track of the top 10 candidates,
 and for each re-testing by recalibrating given the inferred mapping
-and rescoring - we get 99% accuracy on the 5mer data - the 6mer
+and rescoring - we can get almost 99% accuracy on the 5mer data - the 6mer
 data is more problematic because of higher skip/stop rates.
 
 ![kd-tree approximate mapping vs BWA MEM mapping positions](/assets/kdtreemapping/dotplot.png)
 
 Of course, while 95-99% (Q13-Q20) mapping accuracy on _E. coli_ is
 a cute outcome from such a simple approach, it isn&#8217;t nearly
-enough; with $$d=8$$ and $$k=6$$, wer&#8217;e working with seeds of
-size 14, which would typically be unique in the _E. coli_ reference,
+enough; with $$d=7$$ and $$k=6$$, wer&#8217;e working with seeds of
+size 12, which would typically be unique in the _E. coli_ reference,
 but certainly wouldn&#8217;t be in the human genome, or for metageomic
 applications.
 
-To improve accuracy, we need to go further than just summing scores
-of individual seed matches, about which we plan to write more shortly.
+### EM Rescaling
+
+One limiting factor is the approximate nature of the rescaling that is
+being performed at the beginning; for reads that have been basecalled,
+the inferred shift values above can be off by several picoamps from the
+Metrichor values, which clearly causes both false negatives and false
+positives in the index lookup.  This can be addressed by doing a more
+careful rescaling step, using EM iterations:
+
+* For the E-step, provisionally assign probabilities of read events
+correspondinng to model levels, based on the gaussian distributions 
+described in the model and a simple transition matrix between events;
+* For the M-step, perform a weighted least squares regression to
+re-scale the read levels.
+
+This gives answers that are quite good when compared with Metrichor,
+at the cost of some more substantial computational effort (much greater
+than the spatial index lookup!), particularly for long reads and larger
+\(k\) where the number of model levels is larger:
+
+{% highlight bash %}
+$ ./index-and-map.sh noclosest templateonly rescale
+
+5mer data: 
+
+Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
+time python ./mapread.py --plot save --plotdir plots  --rescale  --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
+
+real    5m30.113s
+user    5m35.216s
+sys 0m23.236s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch34_file53    228         1128120  1128348  18.596000
+ch461_file9    1895        2195243  2193348  12.868000
+ch464_file15   2031        2195379  2193348  20.071000
+ch182_file148  2441        2767555  2769996  22.090000
+ch401_file98   5019        2328329  2333348  15.125000
+ch395_file89   5828        2069168  2074996  14.260000
+ch498_file171  6130        3793866  3799996  20.984000
+ch222_file28   6765        2803231  2809996  19.572000
+ch277_file143  10819       3079177  3089996  22.064000
+ch80_file64    15649       4369347  4384996  17.210000
+{% endhighlight %}
+
+Note again the increase in zscores; replotting gives:
+
+<table>
+<tr>
+<td> <img src="/assets/kdtreemapping/ch182_file148_rescale.png" alt="ch182_file148" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/ch401_file98_rescale.png" alt="ch182_file148" style="width: 400px;"/> </td>
+</tr>
+</table>
+
+### Extending the seeds
+
+So far we have in no way taken into account any of the locality
+information in the spatial index lookup results; that is, that a long
+series of hits close together, in the same order on the read and on the
+reference, is much stronger evidence for a good mapping than a haphazard
+series of hits in random order.  So far we have done well because with
+matches of \( k+d-1 = 12 \) bases we might well expect the matches to be
+unique in _E. coli_, but in larger genomes this will no longer be the case.
+
+Keeping with the do-the-simplest-thing approach that has worked so far,
+we can try to extend these "seed" matches by attempting to stitch
+them together into longer seeds; here we build 15-mers out of sets of
+4 neighbouring 12-mers, allowing one skip or stay somewhere within them,
+using as a score for the result the minimum of the constitutent scores,
+and dropping all hits that cannot be so extended:
+
+{% highlight bash %}
+$ ./index-and-map.sh noclosest templateonly rescale extend
+
+5mer data: 
+
+Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
+time python ./mapread.py --plot save --plotdir plots  --rescale --extend --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
+
+real    5m44.699s
+user    5m48.304s
+sys 0m24.000s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch401_file98   19          2328329  2328348  25.848000
+ch34_file53    228         1128120  1128348  28.754000
+ch498_file171  1130        3793866  3794996  28.390000
+ch464_file15   2031        2195379  2193348  28.489000
+ch461_file9    3105        2195243  2198348  29.191000
+ch222_file28   6765        2803231  2809996  28.578000
+ch182_file148  7441        2767555  2774996  29.820000
+ch277_file143  10819       3079177  3089996  29.665000
+ch395_file89   10828       2069168  2079996  24.867000
+ch80_file64    15649       4369347  4384996  29.631000
+{% endhighlight %}
+
+<table>
+<tr>
+<td> <img src="/assets/kdtreemapping/ch182_file148_extend.png" alt="ch182_file148" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/ch401_file98_extend.png" alt="ch182_file148" style="width: 400px;"/> </td>
+</tr>
+</table>
+
+and we now we have significantly stronger results than we began with.  
+
+A proper implementation of these ideas would strip out the multiple,
+copies of large, reference-sized data structures that are being used
+and avoid the extensive python list manipulations that are used in the
+mapping.  We will examine a C++ implementation of this basic approach
+in the new year, which hopefully will also treat in a rather more
+sophisticated way using the locality information of hits to inform
+the mapping, perhaps along the line of Heng Li&#8217;s new minimap[^5].
 
 ---
 
@@ -238,3 +463,5 @@ of individual seed matches, about which we plan to write more shortly.
 [^3]: [Salmon: Accurate, Versatile and Ultrafast Quantification from RNA-seq Data using Lightweight-Alignment](http://biorxiv.org/content/early/2015/06/27/021592) (2015) by Patro, Duggal, and Kingsford
 
 [^4]: [RapMap](https://github.com/COMBINE-lab/RapMap), COMBINE lab
+
+[^5]: [Minimap and miniasm: fast mapping and denovo assembly for noisy long sequences](http://arxiv.org/abs/1512.01801), Heng Li
