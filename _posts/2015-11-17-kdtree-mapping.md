@@ -214,7 +214,8 @@ real    0m53.685s
 user    0m48.460s
 sys 0m1.092s
 Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots --closest   --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
+time python ./mapread.py --plot save --plotdir plots --closest   --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx \
+     ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
 
 real    1m9.141s
 user    1m6.236s
@@ -238,7 +239,9 @@ real    0m50.793s
 user    0m47.380s
 sys 0m0.840s
 Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots --closest   --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx  --complementindex indices/ecoli-5mer-complement.kdtidx ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-complement-005.txt
+time python ./mapread.py --plot save --plotdir plots --closest   --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx\
+     --complementindex indices/ecoli-5mer-complement.kdtidx ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 \
+     ...  > template-complement-005.txt
 
 real    1m37.843s
 user    1m37.424s
