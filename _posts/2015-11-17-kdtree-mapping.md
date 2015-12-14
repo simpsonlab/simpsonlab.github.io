@@ -297,7 +297,8 @@ $ ./index-and-map.sh noclosest templateonly
 5mer data: 
 
 Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots    --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
+time python ./mapread.py --plot save --plotdir plots    --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx \
+     ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
 
 real    1m32.260s
 user    1m30.804s
@@ -365,7 +366,8 @@ $ ./index-and-map.sh noclosest templateonly rescale
 5mer data: 
 
 Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots  --rescale  --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
+time python ./mapread.py --plot save --plotdir plots  --rescale  --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx \
+     ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
 
 real    5m30.113s
 user    5m35.216s
@@ -416,7 +418,8 @@ $ ./index-and-map.sh noclosest templateonly rescale extend
 5mer data: 
 
 Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots  --rescale --extend --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
+time python ./mapread.py --plot save --plotdir plots  --rescale --extend --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx \
+     ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
 
 real    5m44.699s
 user    5m48.304s
