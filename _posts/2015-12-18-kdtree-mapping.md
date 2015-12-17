@@ -467,13 +467,12 @@ to bin centres, they are actually the differences between mapping locations.
 We get:
 
 
-
-A proper implementation of these ideas would strip out the multiple,
-copies of large, reference-sized data structures that are being used
-and avoid the extensive python list manipulations that are used in the
-mapping.  We will examine a C++ implementation of this basic approach
-in the new year, which will also have a a rather more sophisticated approach
-to assessing likelihoods.
+The simple python testbed implementation of these ideas linked to above
+is very slow, single-threaded, absurdly memory hungry, and its treatment
+of scores for the mappings does not currently make much sense.  In
+the new year we will address these issues in a proper C++ implementation,
+where (for instance) we will not have multiple copies of large, reference-sized
+data structures.
 
 ---
 
