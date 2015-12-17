@@ -78,7 +78,7 @@ floating-point currents to plausibly represent one of hundreds of
 seed sequences.
 
 On the other hand, a flurry of recent important papers and software[^2]
-[^3] [^4], discussed in some informative
+[^3] [^4] [^5], the first of which are discussed in some informative
 [blog](http://robpatro.com/blog/?p=248)
 [posts](https://liorpachter.wordpress.com/2015/11/01/what-is-a-read-mapping/),
 have demonstrated the usefulness of approximate read mapping.  In
@@ -135,7 +135,6 @@ a pore model for the template strand of a read, and typically two
 possible models to choose from for the complement strand of a read,
 so one needs three indexes in total to query.
 
-
 ### What dimension to choose?
 
 To test this approach, you have to choose a $$d$$ to use.  On the one
@@ -164,23 +163,23 @@ median &ldquo;dmer&rdquo; will have an insertion/deletion in it.
 
 <img src="/assets/kdtreemapping/events-per-stopskip.png" alt="Distribution of lengths of continuous move events" style="width: 550px; margin-left:auto; margin-right:auto;"/>
 
-For these two reasons, we&#8217;ve been playing with $$d = 7-8$$.  I&#8217;ll
-note that while increasing $$d$$ is the most obvious knob to turn to
-increase specificity of the match, higher $$k$$ helps as well.
+For these two reasons, we&#8217;ve been playing with $$d \approx
+8$$.  I&#8217;ll note that while increasing $$d$$ is the most obvious
+knob to turn to increase specificity of the match, higher $$k$$
+helps as well.
 
 ### Normalizing the signal levels
 
 One issue we haven&#8217;t mentioned is that the raw nanopore data needs
-calibration to be compared to the model; there is an additive shift
-and a multiplicative scale that has to be taken into account.  (There
-is also a drift over time, which is typically not important for
-single reads but matters if one is comparing across reads).
+calibration to be compared to the model; there is an additive shift and dirft over time,
+and a multiplicative scale that has to be taken into account.  
 
 A very simple &ldquo;methods of moments&rdquo; calculation works
 surprisingly well for long-enough reads, certainly well enough to
 start an iterative process; for any given model one is trying to
 fit a read to, rescaling the mean and standard deviation of read
-events to model events gives a good starting point for calibration.
+events to model events gives a good starting point for calibration,
+and drift is initialyy ignored.
 
 ![Simple initial rescaling of current values by method of moments](/assets/kdtreemapping/initial-rescale.png)
 
@@ -191,7 +190,6 @@ A simple proof of concept of using spatial indexing to approxmiately map squiggl
 As a spatial index, it uses a version of a [k-d tree](https://en.wikipedia.org/wiki/K-d_tree) (`scipy.spatial.cKDTree`), which is a very versatile and widely used (and so well-optimized) spatial index widely used in machine learning methods amongst others; different structures may have advantages for this application.
 
 Running the `index-and-map.sh` script generates an index for the provided `ecoli.fa` reference - about 1 minute per pore model - and then maps the 10 reads provided of both older 5mer and newer 6mer MAP data.  Mapping each read takes about 6 seconds per read per pore model; this involves lots of python list manipulations so could fairly straightforwardly be made much faster.  
-
 Doing the simplest thing possible for mapping works surprisingly well.  Using the same sort of approach as the first steps of the Sovic _et al._ method[^1], we just:
 
 * Use the default k-d tree parameters (which almost certainly isn&#8217;t right, particularly the distance measure) 
@@ -201,7 +199,7 @@ Doing the simplest thing possible for mapping works surprisingly well.  Using th
     * For each match, add a score to the bin corresponding to the implied starting position of the read on the reference; a higher score for a closer match
 * Report the best match starting point
 
-Let&#8217;s take a look at the initial output for the older SQK005 ecoli data:
+Let&#8217;s take a look at the initial output for the older SQK005 ecoli data and newer SQK006 data:
 {% highlight bash %}
 $ ./index-and-map.sh
 
@@ -289,7 +287,7 @@ guessing which is which:
 
 
 Because many levels are clustered near ~60-70pA, many dmers are quite
-close to each other, and choosing simply the closest d-point is unlikely
+close to each other, and choosing simply the closest $$d$$-point is unlikely
 to give a robust result.  Examining all possible matches in the spatial
 index within some given radius reduces the noise somewhat, at a modest
 increase in compute time:
@@ -359,9 +357,9 @@ described in the model and a simple transition matrix between events;
 re-scale the read levels.
 
 This gives answers that are quite good when compared with Metrichor,
-at the cost of some more substantial computational effort (much greater
-than the spatial index lookup!), particularly for long reads and larger
-\(k\) where the number of model levels is larger:
+at the cost of substantially more computational effort (much greater
+than the spatial index lookup!), particularly for long reads and
+larger \(k\) where the number of model levels is larger:
 
 {% highlight bash %}
 $ ./index-and-map.sh noclosest templateonly rescale
@@ -404,9 +402,7 @@ So far we have in no way taken into account any of the locality
 information in the spatial index lookup results; that is, that a long
 series of hits close together, in the same order on the read and on the
 reference, is much stronger evidence for a good mapping than a haphazard
-series of hits in random order.  So far we have done well because with
-matches of \( k+d-1 = 12 \) bases we might well expect the matches to be
-unique in _E. coli_, but in larger genomes this will no longer be the case.
+series of hits in random order.  
 
 Keeping with the do-the-simplest-thing approach that has worked so far,
 we can try to extend these "seed" matches by attempting to stitch
@@ -448,15 +444,36 @@ ch80_file64    15649       4369347  4384996  29.631000
 </tr>
 </table>
 
-and we now we have significantly stronger results than we began with.  
+Now that we seem to have much stronger and more specific results,
+we can investigate letting go of binning, and instead string these
+extended seeds into longest possible matches.  Continuing to extend
+dmer-by-dmer is too challenging due to missing points (due to
+mis-calibration, too large noise in the dmer falling out of the
+maxdist window in the kdtree, or several skip/stays in a row), so
+following the ideas of graphmap[^1] and minimap[^5], we trace
+collinear seeds through the set of available seeds; rather than
+just taking longest increasing sequences in inferred start positions,
+however, we make a graph of seeds with edges connecting  seeds that
+are monotonically increasing both in read location and reference
+location with 'small enough' jumps, and extract longest paths through
+this graph.  The cost of this is smaller than the rescaling of the read.
+
+Running this, the zscores now somewhat change meaning; only the extracted
+paths are scored, meaning that the scores are only amongst plausible
+mappings, not over all bins across the reference.  Similarly, the differences
+in mapping locations are somewhat more meaningful - rather than being compared
+to bin centres, they are actually the differences between mapping locations.
+
+We get:
+
+
 
 A proper implementation of these ideas would strip out the multiple,
 copies of large, reference-sized data structures that are being used
 and avoid the extensive python list manipulations that are used in the
 mapping.  We will examine a C++ implementation of this basic approach
-in the new year, which hopefully will also treat in a rather more
-sophisticated way using the locality information of hits to inform
-the mapping, perhaps along the line of Heng Li&#8217;s new minimap[^5].
+in the new year, which will also have a a rather more sophisticated approach
+to assessing likelihoods.
 
 ---
 
