@@ -2,7 +2,7 @@
 layout: post
 title: Approximate Mapping of Nanopore Squiggle Data with Spatial Indexing
 author: jonathan
-draft: true
+draft: false
 comments: true
 ---
 
