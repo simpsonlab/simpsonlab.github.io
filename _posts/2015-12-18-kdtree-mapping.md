@@ -147,7 +147,7 @@ On the other hand, two quite different constraints put a strong upper limit on t
 * The [curse of dimensionality](https://en.wikipedia.org/wiki/Curse_of_dimensionality) -
 in high spatial dimensions, nearest-neighbour searching is extremely
 inefficient, because distance loses its discriminative power.  (Most
-things are &ldquo;close&rdquo; to each other in 100-dimensional
+things are roughly equally &ldquo;close&rdquo; to each other in 100-dimensional
 space; there are a lot of routes you can take!)  As a practical
 matter, for most spatial index implementations, for $$d > 15-20$$ or
 so you might as well just do a linear search over all possible
