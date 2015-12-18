@@ -208,57 +208,118 @@ $ ./index-and-map.sh
 Indexing : model models/5mer/template.model, dimension 8
 python spatialindex.py --dimension 8 ecoli.fa models/5mer/template.model indices/ecoli-5mer-template
 
-real    0m53.685s
-user    0m48.460s
-sys 0m1.092s
+real	0m52.922s
+user	0m49.756s
+sys	0m1.196s
 Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots --closest   --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx \
-     ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
+time python ./mapread.py --plot save --plotdir plots --closest    --maxdist 3.5  \
+    --templateindex indices/ecoli-5mer-template.kdtidx    
+    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-005-.txt
 
-real    1m9.141s
-user    1m6.236s
-sys 0m0.612s
+real	1m9.776s
+user	1m9.108s
+sys	0m1.004s
 Template Only Alignments
 Read           Difference  BWA      KDTree   zscore
-ch401_file98   19          2328329  2328348  6.160000
-ch34_file53    228         1128120  1128348  11.235000
-ch464_file15   2031        2195379  2193348  14.782000
-ch182_file148  2441        2767555  2769996  17.120000
-ch461_file9    3105        2195243  2198348  8.749000
-ch277_file143  5819        3079177  3084996  17.164000
-ch498_file171  6130        3793866  3799996  11.916000
-ch222_file28   6765        2803231  2809996  11.152000
-ch80_file64    10649       4369347  4379996  7.469000
-ch395_file89   10828       2069168  2079996  9.517000
+ch277_file143  819         3079177  3079996  17.164000
+ch498_file171  1130        3793866  3794996  11.916000
+ch222_file28   1765        2803231  2804996  11.152000
+ch461_file9    1895        2195243  2193348  8.749000
+ch182_file148  2559        2767555  2764996  17.120000
+ch34_file53    4772        1128120  1123348  11.235000
+ch401_file98   4981        2328329  2323348  6.160000
+ch80_file64    5649        4369347  4374996  7.469000
+ch395_file89   5828        2069168  2074996  9.517000
+ch464_file15   7031        2195379  2188348  14.782000
 Indexing : model models/5mer/complement.model, dimension 8
 python spatialindex.py --dimension 8 ecoli.fa models/5mer/complement.model indices/ecoli-5mer-complement
 
-real    0m50.793s
-user    0m47.380s
-sys 0m0.840s
-Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots --closest   --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx\
-     --complementindex indices/ecoli-5mer-complement.kdtidx ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 \
-     ...  > template-complement-005.txt
+real	0m52.124s
+user	0m47.948s
+sys	0m1.332s
 
-real    1m37.843s
-user    1m37.424s
-sys 0m0.756s
+Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
+time python ./mapread.py --plot save --plotdir plots --closest    --maxdist 3.5  \
+    --templateindex indices/ecoli-5mer-template.kdtidx  \
+    --complementindex indices/ecoli-5mer-complement.kdtidx \
+    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  \
+    > template-complement-005-.txt
+
+real	1m47.590s
+user	1m46.228s
+sys	0m1.712s
 
 Template+Complement Alignements
 Read           Difference  BWA      KDTree   zscore
-ch34_file53    228         1128120  1128348  11.235000
-ch464_file15   2031        2195379  2193348  14.782000
-ch182_file148  2441        2767555  2769996  17.120000
-ch461_file9    3105        2195243  2198348  10.378000
-ch401_file98   5019        2328329  2333348  7.516000
-ch277_file143  5819        3079177  3084996  17.164000
-ch498_file171  6130        3793866  3799996  11.916000
-ch222_file28   6765        2803231  2809996  11.152000
-ch80_file64    10649       4369347  4379996  7.469000
-ch395_file89   10828       2069168  2079996  9.517000
+ch401_file98   19          2328329  2328348  7.516000
+ch277_file143  819         3079177  3079996  17.164000
+ch498_file171  1130        3793866  3794996  11.916000
+ch222_file28   1765        2803231  2804996  11.152000
+ch461_file9    1895        2195243  2193348  10.378000
+ch182_file148  2559        2767555  2764996  17.120000
+ch34_file53    4772        1128120  1123348  11.235000
+ch80_file64    5649        4369347  4374996  7.469000
+ch395_file89   5828        2069168  2074996  9.517000
+ch464_file15   7031        2195379  2188348  14.782000
+
+6mer data: 
+
+Indexing : model models/6mer/template.model, dimension 8
+python spatialindex.py --dimension 8 ecoli.fa models/6mer/template.model indices/ecoli-6mer-template
+
+real	1m4.028s
+user	0m57.924s
+sys	0m1.872s
+
+Mapping reads: starting with ecoli/006/LomanLabz_PC_Ecoli_K12_MG1655_20150924_MAP006_1_5005_1_ch102_file146_strand.fast5
+time python ./mapread.py --plot save --plotdir plots --closest --maxdist 3.5 \
+    --templateindex indices/ecoli-6mer-template.kdtidx \
+    ecoli/006/LomanLabz_PC_Ecoli_K12_MG1655_20150924_MAP006_1_5005_1_ch102_file146_strand.fast5 ...  > template-006-.txt
+
+real	1m46.643s
+user	1m45.636s
+sys	0m1.276s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch383_file65   844         89152    89996    20.490000
+ch209_file0    1119        4564467  4563348  24.038000
+ch485_file6    1739        400087   398348   23.698000
+ch179_file92   3113        496461   493348   16.477000
+ch102_file146  4965        1378313  1373348  25.003000
+ch241_file2    5625        1578973  1573348  5.919000
+ch339_file119  5710        829058   823348   22.348000
+ch412_file79   5806        2194190  2199996  19.218000
+ch228_file128  5933        3809063  3814996  17.926000
+ch206_file36   11173       4373823  4384996  28.011000
+
+Indexing : model models/6mer/complement_pop1.model, dimension 8
+python spatialindex.py --dimension 8 ecoli.fa models/6mer/complement_pop1.model indices/ecoli-6mer-complement_pop1
+python spatialindex.py --dimension 8 ecoli.fa models/6mer/complement_pop2.model indices/ecoli-6mer-complement_pop2
+[..]
+
+Mapping reads: starting with ecoli/006/LomanLabz_PC_Ecoli_K12_MG1655_20150924_MAP006_1_5005_1_ch102_file146_strand.fast5
+time python ./mapread.py --plot save --plotdir plots --closest --maxdist 3.5  \
+    --templateindex indices/ecoli-6mer-template.kdtidx  \
+    --complementindex indices/ecoli-6mer-complement_pop1.kdtidx,indices/ecoli-6mer-complement_pop2.kdtidx \
+    ecoli/006/LomanLabz_PC_Ecoli_K12_MG1655_20150924_MAP006_1_5005_1_ch102_file146_strand.fast5 ...  > template-complement-006-.txt
+
+real	3m55.773s
+user	3m31.032s
+sys	0m4.364s
+
+Template+Complement Alignements
+Read           Difference  BWA      KDTree   zscore
+ch383_file65   844         89152    89996    20.490000
+ch209_file0    1119        4564467  4563348  24.038000
+ch485_file6    1739        400087   398348   23.698000
+ch179_file92   3113        496461   493348   16.477000
+ch102_file146  4965        1378313  1373348  25.003000
+ch339_file119  5710        829058   823348   22.348000
+ch412_file79   5806        2194190  2199996  19.218000
+ch228_file128  5933        3809063  3814996  17.926000
+ch241_file2    9375        1578973  1588348  11.626000
+ch206_file36   11173       4373823  4384996  28.011000
 {% endhighlight %}
-The 6mer data gives similar results. 
 
 We see a couple of things here:
 
@@ -271,6 +332,9 @@ strand only for the rest of this post;
 * Since we are simply assigning starting bins at this point, 
 any assignments within the bin size are equally accurate; here, all
 of the reads were correctly assigned to the starting bin.
+* The newer 6mer data gives slightly better results; part of this
+is likely because we are using the same $$d$$, so a dmer for the k=6 data
+corresponds to seed longer by one
 * The zscore here is a very crude measure of how much the assignment
 stands out over the background (but not necessarily how it compares
 to other candidate mappings); some of these very simple pseudo-mappings 
@@ -280,11 +344,16 @@ guessing which is which:
 
 <table>
 <tr>
-<td> <img src="/assets/kdtreemapping/ch182_file148_simple.png" alt="ch182_file148" style="width: 400px;"/> </td>
-<td> <img src="/assets/kdtreemapping/ch401_file98_simple.png" alt="ch182_file148" style="width: 400px;"/> </td>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__simple.png" alt="ch277_file143 simple" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__simple.png" alt="ch401_file98 simple" style="width: 400px;"/> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__simple.png" alt="ch206_file36 simple" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__simple.png" alt="ch241_file2 simple" style="width: 400px;"/> </td>
 </tr>
 </table>
-
 
 Because many levels are clustered near ~60-70pA, many dmers are quite
 close to each other, and choosing simply the closest $$d$$-point is unlikely
@@ -294,61 +363,81 @@ increase in compute time:
 
 {% highlight bash %}
 $ ./index-and-map.sh noclosest templateonly
-
 5mer data: 
+[...]
+real	3m15.145s
+user	3m5.840s
+sys	0m2.972s
 
-Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots    --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx \
-     ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
-
-real    1m32.260s
-user    1m30.804s
-sys 0m0.948s
 Template Only Alignments
 Read           Difference  BWA      KDTree   zscore
-ch34_file53    228         1128120  1128348  17.545000
-ch461_file9    1895        2195243  2193348  11.832000
-ch464_file15   2031        2195379  2193348  19.064000
-ch401_file98   5019        2328329  2333348  11.723000
-ch498_file171  6130        3793866  3799996  15.583000
-ch222_file28   6765        2803231  2809996  15.847000
-ch182_file148  7441        2767555  2774996  20.122000
-ch80_file64    10649       4369347  4379996  12.202000
-ch277_file143  10819       3079177  3089996  18.217000
-ch395_file89   10828       2069168  2079996  12.179000
+ch401_file98   19          2328329  2328348  11.359000
+ch277_file143  819         3079177  3079996  19.103000
+ch498_file171  1130        3793866  3794996  15.353000
+ch222_file28   1765        2803231  2804996  17.583000
+ch182_file148  2559        2767555  2764996  18.579000
+ch34_file53    4772        1128120  1123348  16.615000
+ch80_file64    5649        4369347  4374996  10.181000
+ch395_file89   5828        2069168  2074996  13.145000
+ch461_file9    6895        2195243  2188348  10.431000
+ch464_file15   7031        2195379  2188348  18.042000
+
+6mer data: 
+[...]
+
+real	9m29.562s
+user	9m9.536s
+sys	0m16.600s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch383_file65   844         89152    89996    21.777000
+ch485_file6    1739        400087   398348   24.384000
+ch179_file92   3113        496461   493348   19.718000
+ch102_file146  4965        1378313  1373348  24.218000
+ch241_file2    5625        1578973  1573348  7.311000
+ch339_file119  5710        829058   823348   26.045000
+ch228_file128  5933        3809063  3814996  20.042000
+ch209_file0    6119        4564467  4558348  23.703000
+ch412_file79   10806       2194190  2204996  21.677000
+ch206_file36   11173       4373823  4384996  29.794000
 {% endhighlight %}
 
 Note the increase in zscores; the same two reads are plotted:
 
 <table>
 <tr>
-<td> <img src="/assets/kdtreemapping/ch182_file148_noclosest.png" alt="ch182_file148" style="width: 400px;"/> </td>
-<td> <img src="/assets/kdtreemapping/ch401_file98_noclosest.png" alt="ch182_file148" style="width: 400px;"/> </td>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__noclosest.png" alt="ch277_file143 noclosest" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__noclosest.png" alt="ch401_file98 noclosest" style="width: 400px;"/> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__noclosest.png" alt="ch206_file36 noclosest" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__noclosest.png" alt="ch241_file2 noclosest" style="width: 400px;"/> </td>
 </tr>
 </table>
 
 With a few other tweaks - keeping track of the top 10 candidates,
 and for each re-testing by recalibrating given the inferred mapping
-and rescoring - we can get almost 99% accuracy on the 5mer data - the 6mer
-data is more problematic because of higher skip/stop rates.
+and rescoring - we can get about 95%-99% accuracy in mapping.
 
 ![kd-tree approximate mapping vs BWA MEM mapping positions](/assets/kdtreemapping/dotplot.png)
 
 Of course, while 95-99% (Q13-Q20) mapping accuracy on _E. coli_ is
 a cute outcome from such a simple approach, it isn&#8217;t nearly
-enough; with $$d=7$$ and $$k=6$$, wer&#8217;e working with seeds of
+enough; with $$d=8$$ and $$k=5$$, wer&#8217;e working with seeds of
 size 12, which would typically be unique in the _E. coli_ reference,
 but certainly wouldn&#8217;t be in the human genome, or for metageomic
 applications.
 
 ### EM Rescaling
 
-One limiting factor is the approximate nature of the rescaling that is
-being performed at the beginning; for reads that have been basecalled,
-the inferred shift values above can be off by several picoamps from the
-Metrichor values, which clearly causes both false negatives and false
-positives in the index lookup.  This can be addressed by doing a more
-careful rescaling step, using EM iterations:
+One limiting factor is the approximate nature of the rescaling so
+far that is being performed; for reads that have been basecalled,
+the inferred shift values above can be off by several picoamps from
+the Metrichor values, which clearly causes both false negatives and
+false positives in the index lookup.  This can be addressed by doing
+a more careful rescaling step, using EM iterations:
 
 * For the E-step, provisionally assign probabilities of read events
 correspondinng to model levels, based on the gaussian distributions 
@@ -363,36 +452,55 @@ larger \(k\) where the number of model levels is larger:
 
 {% highlight bash %}
 $ ./index-and-map.sh noclosest templateonly rescale
-
 5mer data: 
-
-Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots  --rescale  --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx \
-     ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
-
-real    5m30.113s
-user    5m35.216s
-sys 0m23.236s
+[...]
+real	7m1.866s
+user	6m56.708s
+sys	0m29.236s
 Template Only Alignments
 Read           Difference  BWA      KDTree   zscore
-ch34_file53    228         1128120  1128348  18.596000
-ch461_file9    1895        2195243  2193348  12.868000
-ch464_file15   2031        2195379  2193348  20.071000
-ch182_file148  2441        2767555  2769996  22.090000
-ch401_file98   5019        2328329  2333348  15.125000
-ch395_file89   5828        2069168  2074996  14.260000
-ch498_file171  6130        3793866  3799996  20.984000
-ch222_file28   6765        2803231  2809996  19.572000
-ch277_file143  10819       3079177  3089996  22.064000
-ch80_file64    15649       4369347  4384996  17.210000
+ch401_file98   19          2328329  2328348  14.975000
+ch277_file143  819         3079177  3079996  22.516000
+ch498_file171  1130        3793866  3794996  20.894000
+ch222_file28   1765        2803231  2804996  19.569000
+ch182_file148  2559        2767555  2764996  20.443000
+ch34_file53    4772        1128120  1123348  17.401000
+ch395_file89   5828        2069168  2074996  13.510000
+ch461_file9    6895        2195243  2188348  11.165000
+ch464_file15   7031        2195379  2188348  19.315000
+ch80_file64    10649       4369347  4379996  15.109000
+
+6mer data: 
+[...]
+real	33m11.324s
+user	31m55.172s
+sys	2m0.836s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch383_file65   844         89152    89996    23.732000
+ch179_file92   3113        496461   493348   20.845000
+ch102_file146  4965        1378313  1373348  24.997000
+ch241_file2    5625        1578973  1573348  10.574000
+ch339_file119  5710        829058   823348   26.816000
+ch228_file128  5933        3809063  3814996  21.397000
+ch209_file0    6119        4564467  4558348  24.546000
+ch485_file6    6739        400087   393348   24.790000
+ch412_file79   10806       2194190  2204996  25.477000
+ch206_file36   11173       4373823  4384996  30.164000
 {% endhighlight %}
 
 Note again the increase in zscores; replotting gives:
 
 <table>
 <tr>
-<td> <img src="/assets/kdtreemapping/ch182_file148_rescale.png" alt="ch182_file148" style="width: 400px;"/> </td>
-<td> <img src="/assets/kdtreemapping/ch401_file98_rescale.png" alt="ch182_file148" style="width: 400px;"/> </td>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__rescale.png" alt="ch277_file143 rescale" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__rescale.png" alt="ch401_file98 rescale" style="width: 400px;"/> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__rescale.png" alt="ch206_file36 rescale" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__rescale.png" alt="ch241_file2 rescale" style="width: 400px;"/> </td>
 </tr>
 </table>
 
@@ -402,45 +510,67 @@ So far we have in no way taken into account any of the locality
 information in the spatial index lookup results; that is, that a long
 series of hits close together, in the same order on the read and on the
 reference, is much stronger evidence for a good mapping than a haphazard
-series of hits in random order.  
+series of hits in random order that happen to fall within the same bin
+of starting points.  
 
-Keeping with the do-the-simplest-thing approach that has worked so far,
-we can try to extend these "seed" matches by attempting to stitch
-them together into longer seeds; here we build 15-mers out of sets of
-4 neighbouring 12-mers, allowing one skip or stay somewhere within them,
-using as a score for the result the minimum of the constitutent scores,
-and dropping all hits that cannot be so extended:
+Keeping with the do-the-simplest-thing approach that has worked so
+far, we can try to extend these "seed" matches by stitching them
+together into longer seeds; here we build 15-mers out of sets of 4
+neighbouring 12-mers, allowing one skip or stay somewhere within
+them, using as a score for the result the minimum of the constitutent
+scores, and dropping all hits that cannot be so extended.  This has
+quite modest additional cost, and works quite well:
 
 {% highlight bash %}
 $ ./index-and-map.sh noclosest templateonly rescale extend
-
 5mer data: 
 
-Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
-time python ./mapread.py --plot save --plotdir plots  --rescale --extend --maxdist 3  --templateindex indices/ecoli-5mer-template.kdtidx \
-     ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  > template-only-005.txt
-
-real    5m44.699s
-user    5m48.304s
-sys 0m24.000s
+[...]
+real	7m20.914s
+user	7m19.228s
+sys	0m23.620s
 Template Only Alignments
 Read           Difference  BWA      KDTree   zscore
-ch401_file98   19          2328329  2328348  25.848000
-ch34_file53    228         1128120  1128348  28.754000
-ch498_file171  1130        3793866  3794996  28.390000
-ch464_file15   2031        2195379  2193348  28.489000
-ch461_file9    3105        2195243  2198348  29.191000
-ch222_file28   6765        2803231  2809996  28.578000
-ch182_file148  7441        2767555  2774996  29.820000
-ch277_file143  10819       3079177  3089996  29.665000
-ch395_file89   10828       2069168  2079996  24.867000
-ch80_file64    15649       4369347  4384996  29.631000
+ch498_file171  1130        3793866  3794996  28.762000
+ch222_file28   1765        2803231  2804996  27.434000
+ch461_file9    1895        2195243  2193348  29.089000
+ch182_file148  2559        2767555  2764996  29.538000
+ch34_file53    4772        1128120  1123348  28.837000
+ch401_file98   4981        2328329  2323348  23.840000
+ch277_file143  5819        3079177  3084996  29.832000
+ch395_file89   5828        2069168  2074996  23.705000
+ch464_file15   7031        2195379  2188348  28.941000
+ch80_file64    10649       4369347  4379996  26.926000
+
+6mer data: 
+[...]
+real	33m57.863s
+user	32m58.236s
+sys	1m42.548s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch241_file2    625         1578973  1578348  25.137000
+ch485_file6    1739        400087   398348   30.297000
+ch339_file119  5710        829058   823348   31.856000
+ch383_file65   5844        89152    94996    30.163000
+ch228_file128  5933        3809063  3814996  29.294000
+ch209_file0    6119        4564467  4558348  30.169000
+ch179_file92   8113        496461   488348   28.732000
+ch102_file146  9965        1378313  1368348  30.107000
+ch412_file79   10806       2194190  2204996  30.377000
+ch206_file36   11173       4373823  4384996  33.896000
 {% endhighlight %}
 
 <table>
 <tr>
-<td> <img src="/assets/kdtreemapping/ch182_file148_extend.png" alt="ch182_file148" style="width: 400px;"/> </td>
-<td> <img src="/assets/kdtreemapping/ch401_file98_extend.png" alt="ch182_file148" style="width: 400px;"/> </td>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__extend.png" alt="ch277_file143 extend" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__extend.png" alt="ch401_file98 extend" style="width: 400px;"/> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__extend.png" alt="ch206_file36 extend" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__extend.png" alt="ch241_file2 extend" style="width: 400px;"/> </td>
 </tr>
 </table>
 
@@ -466,6 +596,59 @@ to bin centres, they are actually the differences between mapping locations.
 
 We get:
 
+{% highlight bash %}
+5mer data: 
+[...]
+
+real	6m54.776s
+user	6m52.064s
+sys	0m23.648s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch461_file9    10          2195243  2195253  7.105000
+ch34_file53    343         1128120  1128463  12.449000
+ch401_file98   363         2328329  2328692  5.320000
+ch464_file15   2826        2195379  2192553  13.267000
+ch498_file171  3192        3793866  3797058  7.688000
+ch182_file148  5450        2767555  2773005  10.107000
+ch222_file28   5681        2803231  2808912  8.166000
+ch277_file143  6381        3079177  3085558  9.190000
+ch395_file89   7191        2069168  2076359  7.685000
+ch80_file64    15167       4369347  4384514  7.965000
+
+
+6mer data: 
+[...]
+
+real	43m37.651s
+user	42m37.208s
+sys	1m42.848s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch209_file0    14          4564467  4564453  31.724000
+ch485_file6    14          400087   400073   24.063000
+ch241_file2    203         1578973  1578770  26.676000
+ch179_file92   723         496461   495738   39.626000
+ch339_file119  774         829058   828284   45.636000
+ch102_file146  1568        1378313  1376745  45.601000
+ch383_file65   5890        89152    95042    27.902000
+ch228_file128  8120        3809063  3817183  35.863000
+ch412_file79   13833       2194190  2208023  48.444000
+ch206_file36   15650       4373823  4389473  38.441000
+{% endhighlight %}
+
+<table>
+<tr>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__longest.png" alt="ch277_file143 longest" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__longest.png" alt="ch401_file98 longest" style="width: 400px;"/> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__longest.png" alt="ch206_file36 longest" style="width: 400px;"/> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__longest.png" alt="ch241_file2 longest" style="width: 400px;"/> </td>
+</tr>
+</table>
 
 The simple python testbed implementation of these ideas linked to above
 is very slow, single-threaded, absurdly memory hungry, and its treatment
