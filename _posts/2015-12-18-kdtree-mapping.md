@@ -18,7 +18,7 @@ where the data comes in as a stream of events (the red lines) with
 means, standard deviations, and durations, with each black point
 being an individual signal reading.  We use the signal-level data
 partly for accuracy - because converting each red line and dozens
-of black basecalling into one of four letters invariably loses lots
+of black points into one of four letters invariably loses lots
 of information - and partly because those basecalls might not be
 available in, say, the field, where the portability of the nanopore
 sequencers really shines.
@@ -28,7 +28,7 @@ the interaction of the pore and the strand of DNA; such a pore model
 gives, amongst other things, an expected signal mean and standard
 deviation for currents through the pore when a given $$k$$mer is in
 the pore (for the MinION devices, pore models typically use $$k$$=5 or
-6).  So a pore model might be, for k=5, a table with 1024 entries
+6).  So a pore model might be, for $$k$$=5, a table with 1024 entries
 that looks something like this:
 
 
@@ -108,7 +108,7 @@ all matches within some, typically euclidean, distance.
 
 To see how this would work, consider indexing the sequence above,
 AAAAACGTCC, in a spatial index with $$d=2$$.  There are a total of 6
-events, so wed&#8217; have 5 points (6-2+1), each points in 2-dimensional
+events, so we&#8217;d have 5 points (6-2+1), each points in 2-dimensional
 space; 4 are plotted below (the other falls out of the range of the
 plot)
 
@@ -171,7 +171,7 @@ helps as well.
 ### Normalizing the signal levels
 
 One issue we haven&#8217;t mentioned is that the raw nanopore data needs
-calibration to be compared to the model; there is an additive shift and dirft over time,
+calibration to be compared to the model; there is an additive shift and drift over time,
 and a multiplicative scale that has to be taken into account.  
 
 A very simple &ldquo;methods of moments&rdquo; calculation works
@@ -179,13 +179,13 @@ surprisingly well for long-enough reads, certainly well enough to
 start an iterative process; for any given model one is trying to
 fit a read to, rescaling the mean and standard deviation of read
 events to model events gives a good starting point for calibration,
-and drift is initialyy ignored.
+and drift is initially ignored.
 
 ![Simple initial rescaling of current values by method of moments](/assets/kdtreemapping/initial-rescale.png)
 
 ### Proof of concept
 
-A simple proof of concept of using spatial indexing to approxmiately map squiggle data can be found [on github](https://github.com/ljdursi/simple-squiggle-pseudomapper).  It&#8217;s written in python, and has `scipy`, `h5py`, and `matplotlib` as dependencies.  Note that as implemented, it is absurdly memory-hungry, and definitely requires a numpy and scipy built against a good BLAS implementation.
+A simple proof of concept of using spatial indexing to approximately map squiggle data can be found [on github](https://github.com/ljdursi/simple-squiggle-pseudomapper).  It&#8217;s written in python, and has `scipy`, `h5py`, and `matplotlib` as dependencies.  Note that as implemented, it is absurdly memory-hungry, and definitely requires a numpy and scipy built against a good BLAS implementation.
 
 As a spatial index, it uses a version of a [k-d tree](https://en.wikipedia.org/wiki/K-d_tree) (`scipy.spatial.cKDTree`), which is a very versatile and widely used (and so well-optimized) spatial index widely used in machine learning methods amongst others; different structures may have advantages for this application.
 
@@ -193,7 +193,7 @@ Running the `index-and-map.sh` script generates an index for the provided `ecoli
 Doing the simplest thing possible for mapping works surprisingly well.  Using the same sort of approach as the first steps of the Sovic _et al._ method[^1], we just:
 
 * Use the default k-d tree parameters (which almost certainly isn&#8217;t right, particularly the distance measure) 
-* Consider overlapping bins of starting positions on the reference, of size ~15,000bp, a typical read size 
+* Consider overlapping bins of starting positions on the reference, of size ~10,000 events, a typical read size 
 * For each $$d$$-point in the read,
     * Take the closest match to each $$d$$-point (or all within some distance) 
     * For each match, add a score to the bin corresponding to the implied starting position of the read on the reference; a higher score for a closer match
@@ -325,13 +325,13 @@ We see a couple of things here:
 
 * Adding the complement strand does almost nothing for the accuracy,
 but requires substantially more memory and compute time, as multiple
-indicies must be loaded and used up, and all candidate complement
-indicies must be compared against each other.  Because of this and
+indices must be loaded and used up, and all candidate complement
+indices must be compared against each other.  Because of this and
 the typically higher skip/stay rates for complement strands, we will use the template
 strand only for the rest of this post;
 * Since we are simply assigning starting bins at this point, 
 any assignments within the bin size are equally accurate; here, all
-of the reads were correctly assigned to the starting bin.
+of the reads were correctly assigned to the starting bin or the neighbouring one.
 * The newer 6mer data gives slightly better results; part of this
 is likely because we are using the same $$d$$, so a dmer for the k=6 data
 corresponds to seed longer by one
@@ -427,7 +427,7 @@ Of course, while 95-99% (Q13-Q20) mapping accuracy on _E. coli_ is
 a cute outcome from such a simple approach, it isn&#8217;t nearly
 enough; with $$d=8$$ and $$k=5$$, wer&#8217;e working with seeds of
 size 12, which would typically be unique in the _E. coli_ reference,
-but certainly wouldn&#8217;t be in the human genome, or for metageomic
+but certainly wouldn&#8217;t be in the human genome, or for metagenomic
 applications.
 
 ### EM Rescaling
@@ -440,7 +440,7 @@ false positives in the index lookup.  This can be addressed by doing
 a more careful rescaling step, using EM iterations:
 
 * For the E-step, provisionally assign probabilities of read events
-correspondinng to model levels, based on the gaussian distributions 
+corresponding to model levels, based on the Gaussian distributions 
 described in the model and a simple transition matrix between events;
 * For the M-step, perform a weighted least squares regression to
 re-scale the read levels.
@@ -517,7 +517,7 @@ Keeping with the do-the-simplest-thing approach that has worked so
 far, we can try to extend these "seed" matches by stitching them
 together into longer seeds; here we build 15-mers out of sets of 4
 neighbouring 12-mers, allowing one skip or stay somewhere within
-them, using as a score for the result the minimum of the constitutent
+them, using as a score for the result the minimum of the constituent
 scores, and dropping all hits that cannot be so extended.  This has
 quite modest additional cost, and works quite well:
 
