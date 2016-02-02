@@ -4,7 +4,7 @@
  <title>Simpson Lab Blog</title>
  <link href="http://simpsonlab.github.io/atom.xml" rel="self"/>
  <link href="http://simpsonlab.github.io/"/>
- <updated>2015-10-07T16:19:38-04:00</updated>
+ <updated>2016-02-02T14:18:44-08:00</updated>
  <id>simpsonlab.github.io</id>
  <author>
    <name>Jared Simpson</name>
@@ -13,12 +13,853 @@
 
  
   
+   <entry>
+     <title>jekyll3 test</title>
+     <link href="http://simpsonlab.github.io/2016/02/02/testpost/"/>
+     <updated>2016-02-02T00:00:00-08:00</updated>
+     <id>simpsonlab.github.io/2016/02/02/testpost</id>
+     <content type="html"><p>A test post <script type="math/tex">x</script></p>
+</content>
+   </entry>
+  
+ 
+  
+   <entry>
+     <title>Approximate Mapping of Nanopore Squiggle Data with Spatial Indexing</title>
+     <link href="http://simpsonlab.github.io/2015/12/18/kdtree-mapping/"/>
+     <updated>2015-12-18T00:00:00-08:00</updated>
+     <id>simpsonlab.github.io/2015/12/18/kdtree-mapping</id>
+     <content type="html"><h3 id="nanopore-data">Nanopore data</h3>
+
+<p>Here at the Simpsonlab we work with signal-level data from nanopore
+sequencers, particularly those from ONT like the MinION.  Signal-level
+data looks something like this:</p>
+
+<p><img src="/assets/kdtreemapping/squiggle.png" alt="Idealized Example Squiggle Plot" /></p>
+
+<p>where the data comes in as a stream of events (the red lines) with
+means, standard deviations, and durations, with each black point
+being an individual signal reading.  We use the signal-level data
+partly for accuracy - because converting each red line and dozens
+of black points into one of four letters invariably loses lots
+of information - and partly because those basecalls might not be
+available in, say, the field, where the portability of the nanopore
+sequencers really shines.</p>
+
+<p>This data has to be interpreted in terms of a particular model of
+the interaction of the pore and the strand of DNA; such a pore model
+gives, amongst other things, an expected signal mean and standard
+deviation for currents through the pore when a given <script type="math/tex">k</script>mer is in
+the pore (for the MinION devices, pore models typically use <script type="math/tex">k</script>=5 or
+6).  So a pore model might be, for <script type="math/tex">k</script>=5, a table with 1024 entries
+that looks something like this:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>kmer</th>
+      <th>mean</th>
+      <th>std dev</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AAAAA</td>
+      <td>70.24</td>
+      <td>± 0.95 pA</td>
+    </tr>
+    <tr>
+      <td>AAAAC</td>
+      <td>66.13</td>
+      <td>± 0.75 pA</td>
+    </tr>
+    <tr>
+      <td>AAAAG</td>
+      <td>70.23</td>
+      <td>± 0.76 pA</td>
+    </tr>
+    <tr>
+      <td>AAAAT</td>
+      <td>69.25</td>
+      <td>± 0.68 pA</td>
+    </tr>
+    <tr>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>and using such a pore model it’s fairly straightforward to
+go from a sequence to an expected set of signal levels from the
+sequencer: so, say, for the 10-base sequence AAAAACGTCC and the
+above 5-mer pore model we’d expect 6 events (10-5+1) that look like:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>event</th>
+      <th>kmer</th>
+      <th>mean</th>
+      <th>range (1<script type="math/tex">\sigma</script>)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><em>e1</em></td>
+      <td>AAAAA</td>
+      <td>70.2 pA</td>
+      <td>69.3 -  71.2 pA</td>
+    </tr>
+    <tr>
+      <td><em>e2</em></td>
+      <td>AAAAC</td>
+      <td>66.1 pA</td>
+      <td>65.4 -  66.9 pA</td>
+    </tr>
+    <tr>
+      <td><em>e3</em></td>
+      <td>AAACG</td>
+      <td>62.8 pA</td>
+      <td>62.0 -  63.6 pA</td>
+    </tr>
+    <tr>
+      <td><em>e4</em></td>
+      <td>AACGT</td>
+      <td>67.6 pA</td>
+      <td>66.3 -  68.9 pA</td>
+    </tr>
+    <tr>
+      <td><em>e5</em></td>
+      <td>ACGTC</td>
+      <td>56.6 pA</td>
+      <td>54.5 -  58.7 pA</td>
+    </tr>
+    <tr>
+      <td><em>e6</em></td>
+      <td>CGTCC</td>
+      <td>49.9 pA</td>
+      <td>49.1 -  50.7 pA</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Using those models, plus HMMs and a tonne of math, Jared’s
+<a href="https://github.com/jts/nanopolish">nanopolish</a> tool has had enormous
+success improving the quality of nanopore reads and assemblies of
+nanopore data.  As one can see from the ‘range’ column above, and
+from the histogram on the side of the first plot, which shows the
+numbers of kmers which fall into 1pA bins in the pore model, this
+isn’t necessarily particularly easy.  There are over 70 kmers which
+are expected to have means in the range 69.5pA - 70.5pA;
+that plus the wide standard deviations means that there is enormous
+ambiguity going back from signal levels to sequence.</p>
+
+<h3 id="mapping">Mapping</h3>
+
+<p>This ambiguity introduces complication into another part of the
+bioinformatics pipeline - mapping.  While several mappers (BWA MEM,
+LAST) work quite well with basecalled ONT data, and one mapper<sup id="fnref:1"><a href="#fn:1" class="footnote">1</a></sup>
+has been written specifically for basecalled ONT data, mapping
+signal-level data directly is a little tougher.  It is one thing
+for a seed sequence in the read to occur in multiple locations in
+the reference index; it is another thing for a sequence of
+floating-point currents to plausibly represent one of hundreds of
+seed sequences.</p>
+
+<p>On the other hand, a flurry of recent important papers and software<sup id="fnref:2"><a href="#fn:2" class="footnote">2</a></sup>
+<sup id="fnref:3"><a href="#fn:3" class="footnote">3</a></sup> <sup id="fnref:4"><a href="#fn:4" class="footnote">4</a></sup> <sup id="fnref:5"><a href="#fn:5" class="footnote">5</a></sup>, the first of which are discussed in some informative
+<a href="http://robpatro.com/blog/?p=248">blog</a>
+<a href="https://liorpachter.wordpress.com/2015/11/01/what-is-a-read-mapping/">posts</a>,
+have demonstrated the usefulness of approximate read mapping.  In
+our case, mapping to an approximate region of a reference would
+allow exact but computationally expensive methods like <code class="highlighter-rouge">nanopolish
+eventalign</code> to produce precise alignments, or simple assignment may
+be all that is necessary for other applications.</p>
+
+<p>So an output approximate mapping would be valuable, but the issues
+remains of how to disambiguate the signal level values.</p>
+
+<h3 id="spatial-indexing">Spatial Indexing</h3>
+
+<p>Importantly, while any individual event is very difficult to assign
+with precision, sequences of events are less ambiguous, as any given
+event is followed, with high probability, by one of only four other
+events.  Thus, by examining tuples of events, one can greatly
+increase specificity.</p>
+
+<p>And there are well-developed sets of techniques for looking up lists
+of <script type="math/tex">d</script> floating point values to look for candidate matches: <a href="https://en.wikipedia.org/wiki/Spatial_database">spatial
+indexes</a>, where
+each query or match is considered as a point in <script type="math/tex">d</script>-dimensional
+space, and the goal is to return either some number of nearest
+points (k-Nearest-Neighbours, or <a href="https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm">kNN queries</a>), or
+all matches within some, typically euclidean, distance.</p>
+
+<p>To see how this would work, consider indexing the sequence above,
+AAAAACGTCC, in a spatial index with <script type="math/tex">d=2</script>.  There are a total of 6
+events, so we’d have 5 points (6-2+1), each points in 2-dimensional
+space; 4 are plotted below (the other falls out of the range of the
+plot)</p>
+
+<p><img src="/assets/kdtreemapping/2d-spatial-query.png" alt="2D Spatial Query" style="width: 478px; margin-left:auto; margin-right:auto;" /></p>
+
+<p>and a query for <script type="math/tex">d</script> read events that could be matched by (69.5, 67), the blue point, would return the nearest match (70.2, 66.1) corresponding to the <script type="math/tex">k+d-1</script>-mer AAAAAC.</p>
+
+<p>So to map event data, one can:</p>
+
+<ul>
+  <li>Generate an index:
+    <ul>
+      <li>Generate all overlapping tuples of <script type="math/tex">d</script> kmers from a reference</li>
+      <li>Using a pore model, convert those into points in <script type="math/tex">d</script>-space</li>
+      <li>Create a spatial index of those points,</li>
+    </ul>
+  </li>
+  <li>For every read:
+    <ul>
+      <li>Take every overlapping set of <script type="math/tex">d</script> events</li>
+      <li>Look it up in a spatial index</li>
+      <li>Find a most likely starting point for the read in the reference, with a quality score.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Note that one has to explicitly index both the forward and reverse
+strands of the reference, since you don’t <em>a priori</em> know
+what the “reverse complement” of 65.5 pA is.  One
+also has to generate multiple indices; for 2D ONT reads, there is
+a pore model for the template strand of a read, and typically two
+possible models to choose from for the complement strand of a read,
+so one needs three indexes in total to query.</p>
+
+<h3 id="what-dimension-to-choose">What dimension to choose?</h3>
+
+<p>To test this approach, you have to choose a <script type="math/tex">d</script> to use.  On the one
+hand, you would like to choose as large a dimension as you can; the
+larger <script type="math/tex">k+d-1</script> is, the more unique each seed is and the fewer places
+it will occur in any reference sequence.</p>
+
+<p>On the other hand, two quite different constraints put a strong upper limit on the dimensions that will be useful:</p>
+
+<ul>
+  <li>The <a href="https://en.wikipedia.org/wiki/Curse_of_dimensionality">curse of dimensionality</a> -
+in high spatial dimensions, nearest-neighbour searching is extremely
+inefficient, because distance loses its discriminative power.  (Most
+things are roughly equally far from each other in 100-dimensional
+space; there are a lot of routes you can take!)  As a practical
+matter, for most spatial index implementations, for <script type="math/tex">d > 15-20</script> or
+so you might as well just do a linear search over all possible
+items;</li>
+  <li>Current approaches to segmentation mean that ONT data has very
+frequent ‘stops’ and ‘skips’ - that is,
+events are spuriously either inserted or deleted from the data.
+Exactly as with noisy basecalled sequences, this strongly limits
+the length of sequence that can be usefully used as seeds.  As we
+see below for one set of <em>E. coli</em> data, there is probably not much
+point in using <script type="math/tex">d \ge 10</script> even for template-strand data, as the
+median “dmer” will have an insertion/deletion in it.</li>
+</ul>
+
+<p><img src="/assets/kdtreemapping/events-per-stopskip.png" alt="Distribution of lengths of continuous move events" style="width: 550px; margin-left:auto; margin-right:auto;" /></p>
+
+<p>For these two reasons, we’ve been playing with <script type="math/tex">d \approx
+8</script>.  I’ll note that while increasing <script type="math/tex">d</script> is the most obvious
+knob to turn to increase specificity of the match, higher <script type="math/tex">k</script>
+helps as well.</p>
+
+<h3 id="normalizing-the-signal-levels">Normalizing the signal levels</h3>
+
+<p>One issue we haven’t mentioned is that the raw nanopore data needs
+calibration to be compared to the model; there is an additive shift and drift over time,
+and a multiplicative scale that has to be taken into account.</p>
+
+<p>A very simple “methods of moments” calculation works
+surprisingly well for long-enough reads, certainly well enough to
+start an iterative process; for any given model one is trying to
+fit a read to, rescaling the mean and standard deviation of read
+events to model events gives a good starting point for calibration,
+and drift is initially ignored.</p>
+
+<p><img src="/assets/kdtreemapping/initial-rescale.png" alt="Simple initial rescaling of current values by method of moments" /></p>
+
+<h3 id="proof-of-concept">Proof of concept</h3>
+
+<p>A simple proof of concept of using spatial indexing to approximately map squiggle data can be found <a href="https://github.com/ljdursi/simple-squiggle-pseudomapper">on github</a>.  It’s written in python, and has <code class="highlighter-rouge">scipy</code>, <code class="highlighter-rouge">h5py</code>, and <code class="highlighter-rouge">matplotlib</code> as dependencies.  Note that as implemented, it is absurdly memory-hungry, and definitely requires a numpy and scipy built against a good BLAS implementation.</p>
+
+<p>As a spatial index, it uses a version of a <a href="https://en.wikipedia.org/wiki/K-d_tree">k-d tree</a> (<code class="highlighter-rouge">scipy.spatial.cKDTree</code>), which is a very versatile and widely used (and so well-optimized) spatial index widely used in machine learning methods amongst others; different structures may have advantages for this application.</p>
+
+<p>Running the <code class="highlighter-rouge">index-and-map.sh</code> script generates an index for the provided <code class="highlighter-rouge">ecoli.fa</code> reference - about 1 minute per pore model - and then maps the 10 reads provided of both older 5mer and newer 6mer MAP data.  Mapping each read takes about 6 seconds per read per pore model; this involves lots of python list manipulations so could fairly straightforwardly be made much faster.<br />
+Doing the simplest thing possible for mapping works surprisingly well.  Using the same sort of approach as the first steps of the Sovic <em>et al.</em> method<sup id="fnref:1:1"><a href="#fn:1" class="footnote">1</a></sup>, we just:</p>
+
+<ul>
+  <li>Use the default k-d tree parameters (which almost certainly isn’t right, particularly the distance measure)</li>
+  <li>Consider overlapping bins of starting positions on the reference, of size ~10,000 events, a typical read size</li>
+  <li>For each <script type="math/tex">d</script>-point in the read,
+    <ul>
+      <li>Take the closest match to each <script type="math/tex">d</script>-point (or all within some distance)</li>
+      <li>For each match, add a score to the bin corresponding to the implied starting position of the read on the reference; a higher score for a closer match</li>
+    </ul>
+  </li>
+  <li>Report the best match starting point</li>
+</ul>
+
+<p>Let’s take a look at the initial output for the older SQK005 ecoli data and newer SQK006 data:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>./index-and-map.sh
+
+5mer data: 
+
+Indexing : model models/5mer/template.model, dimension 8
+python spatialindex.py --dimension 8 ecoli.fa models/5mer/template.model indices/ecoli-5mer-template
+
+real	0m52.922s
+user	0m49.756s
+sys	0m1.196s
+Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
+<span class="nb">time </span>python ./mapread.py --plot save --plotdir plots --closest    --maxdist 3.5  <span class="se">\</span>
+    --templateindex indices/ecoli-5mer-template.kdtidx    
+    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  &gt; template-005-.txt
+
+real	1m9.776s
+user	1m9.108s
+sys	0m1.004s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch277_file143  819         3079177  3079996  17.164000
+ch498_file171  1130        3793866  3794996  11.916000
+ch222_file28   1765        2803231  2804996  11.152000
+ch461_file9    1895        2195243  2193348  8.749000
+ch182_file148  2559        2767555  2764996  17.120000
+ch34_file53    4772        1128120  1123348  11.235000
+ch401_file98   4981        2328329  2323348  6.160000
+ch80_file64    5649        4369347  4374996  7.469000
+ch395_file89   5828        2069168  2074996  9.517000
+ch464_file15   7031        2195379  2188348  14.782000
+Indexing : model models/5mer/complement.model, dimension 8
+python spatialindex.py --dimension 8 ecoli.fa models/5mer/complement.model indices/ecoli-5mer-complement
+
+real	0m52.124s
+user	0m47.948s
+sys	0m1.332s
+
+Mapping reads: starting with ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5
+<span class="nb">time </span>python ./mapread.py --plot save --plotdir plots --closest    --maxdist 3.5  <span class="se">\</span>
+    --templateindex indices/ecoli-5mer-template.kdtidx  <span class="se">\</span>
+    --complementindex indices/ecoli-5mer-complement.kdtidx <span class="se">\</span>
+    ecoli/005/LomanLabz_PC_Ecoli_K12_R7.3_2549_1_ch182_file148_strand.fast5 ...  <span class="se">\</span>
+    &gt; template-complement-005-.txt
+
+real	1m47.590s
+user	1m46.228s
+sys	0m1.712s
+
+Template+Complement Alignements
+Read           Difference  BWA      KDTree   zscore
+ch401_file98   19          2328329  2328348  7.516000
+ch277_file143  819         3079177  3079996  17.164000
+ch498_file171  1130        3793866  3794996  11.916000
+ch222_file28   1765        2803231  2804996  11.152000
+ch461_file9    1895        2195243  2193348  10.378000
+ch182_file148  2559        2767555  2764996  17.120000
+ch34_file53    4772        1128120  1123348  11.235000
+ch80_file64    5649        4369347  4374996  7.469000
+ch395_file89   5828        2069168  2074996  9.517000
+ch464_file15   7031        2195379  2188348  14.782000
+
+6mer data: 
+
+Indexing : model models/6mer/template.model, dimension 8
+python spatialindex.py --dimension 8 ecoli.fa models/6mer/template.model indices/ecoli-6mer-template
+
+real	1m4.028s
+user	0m57.924s
+sys	0m1.872s
+
+Mapping reads: starting with ecoli/006/LomanLabz_PC_Ecoli_K12_MG1655_20150924_MAP006_1_5005_1_ch102_file146_strand.fast5
+<span class="nb">time </span>python ./mapread.py --plot save --plotdir plots --closest --maxdist 3.5 <span class="se">\</span>
+    --templateindex indices/ecoli-6mer-template.kdtidx <span class="se">\</span>
+    ecoli/006/LomanLabz_PC_Ecoli_K12_MG1655_20150924_MAP006_1_5005_1_ch102_file146_strand.fast5 ...  &gt; template-006-.txt
+
+real	1m46.643s
+user	1m45.636s
+sys	0m1.276s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch383_file65   844         89152    89996    20.490000
+ch209_file0    1119        4564467  4563348  24.038000
+ch485_file6    1739        400087   398348   23.698000
+ch179_file92   3113        496461   493348   16.477000
+ch102_file146  4965        1378313  1373348  25.003000
+ch241_file2    5625        1578973  1573348  5.919000
+ch339_file119  5710        829058   823348   22.348000
+ch412_file79   5806        2194190  2199996  19.218000
+ch228_file128  5933        3809063  3814996  17.926000
+ch206_file36   11173       4373823  4384996  28.011000
+
+Indexing : model models/6mer/complement_pop1.model, dimension 8
+python spatialindex.py --dimension 8 ecoli.fa models/6mer/complement_pop1.model indices/ecoli-6mer-complement_pop1
+python spatialindex.py --dimension 8 ecoli.fa models/6mer/complement_pop2.model indices/ecoli-6mer-complement_pop2
+<span class="o">[</span>..]
+
+Mapping reads: starting with ecoli/006/LomanLabz_PC_Ecoli_K12_MG1655_20150924_MAP006_1_5005_1_ch102_file146_strand.fast5
+<span class="nb">time </span>python ./mapread.py --plot save --plotdir plots --closest --maxdist 3.5  <span class="se">\</span>
+    --templateindex indices/ecoli-6mer-template.kdtidx  <span class="se">\</span>
+    --complementindex indices/ecoli-6mer-complement_pop1.kdtidx,indices/ecoli-6mer-complement_pop2.kdtidx <span class="se">\</span>
+    ecoli/006/LomanLabz_PC_Ecoli_K12_MG1655_20150924_MAP006_1_5005_1_ch102_file146_strand.fast5 ...  &gt; template-complement-006-.txt
+
+real	3m55.773s
+user	3m31.032s
+sys	0m4.364s
+
+Template+Complement Alignements
+Read           Difference  BWA      KDTree   zscore
+ch383_file65   844         89152    89996    20.490000
+ch209_file0    1119        4564467  4563348  24.038000
+ch485_file6    1739        400087   398348   23.698000
+ch179_file92   3113        496461   493348   16.477000
+ch102_file146  4965        1378313  1373348  25.003000
+ch339_file119  5710        829058   823348   22.348000
+ch412_file79   5806        2194190  2199996  19.218000
+ch228_file128  5933        3809063  3814996  17.926000
+ch241_file2    9375        1578973  1588348  11.626000
+ch206_file36   11173       4373823  4384996  28.011000</code></pre></figure>
+
+<p>We see a couple of things here:</p>
+
+<ul>
+  <li>Adding the complement strand does almost nothing for the accuracy,
+but requires substantially more memory and compute time, as multiple
+indices must be loaded and used up, and all candidate complement
+indices must be compared against each other.  Because of this and
+the typically higher skip/stay rates for complement strands, we will use the template
+strand only for the rest of this post;</li>
+  <li>Since we are simply assigning starting bins at this point, 
+any assignments within the bin size are equally accurate; here, all
+of the reads were correctly assigned to the starting bin or the neighbouring one.</li>
+  <li>The newer 6mer data gives slightly better results; part of this
+is likely because we are using the same <script type="math/tex">d</script>, so a dmer for the k=6 data
+corresponds to seed longer by one</li>
+  <li>The zscore here is a very crude measure of how much the assignment
+stands out over the background (but not necessarily how it compares
+to other candidate mappings); some of these very simple pseudo-mappings 
+are relatively securely identified, and others less so.  The sum-of-scores for
+the reads with the best and worst zscore results are plotted below; no prize for
+guessing which is which:</li>
+</ul>
+
+<table>
+<tr>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__simple.png" alt="ch277_file143 simple" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__simple.png" alt="ch401_file98 simple" style="width: 400px;" /> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__simple.png" alt="ch206_file36 simple" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__simple.png" alt="ch241_file2 simple" style="width: 400px;" /> </td>
+</tr>
+</table>
+
+<p>Because many levels are clustered near ~60-70pA, many dmers are quite
+close to each other, and choosing simply the closest <script type="math/tex">d</script>-point is unlikely
+to give a robust result.  Examining all possible matches in the spatial
+index within some given radius reduces the noise somewhat, at a modest
+increase in compute time:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>./index-and-map.sh noclosest templateonly
+5mer data: 
+<span class="o">[</span>...]
+real	3m15.145s
+user	3m5.840s
+sys	0m2.972s
+
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch401_file98   19          2328329  2328348  11.359000
+ch277_file143  819         3079177  3079996  19.103000
+ch498_file171  1130        3793866  3794996  15.353000
+ch222_file28   1765        2803231  2804996  17.583000
+ch182_file148  2559        2767555  2764996  18.579000
+ch34_file53    4772        1128120  1123348  16.615000
+ch80_file64    5649        4369347  4374996  10.181000
+ch395_file89   5828        2069168  2074996  13.145000
+ch461_file9    6895        2195243  2188348  10.431000
+ch464_file15   7031        2195379  2188348  18.042000
+
+6mer data: 
+<span class="o">[</span>...]
+
+real	9m29.562s
+user	9m9.536s
+sys	0m16.600s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch383_file65   844         89152    89996    21.777000
+ch485_file6    1739        400087   398348   24.384000
+ch179_file92   3113        496461   493348   19.718000
+ch102_file146  4965        1378313  1373348  24.218000
+ch241_file2    5625        1578973  1573348  7.311000
+ch339_file119  5710        829058   823348   26.045000
+ch228_file128  5933        3809063  3814996  20.042000
+ch209_file0    6119        4564467  4558348  23.703000
+ch412_file79   10806       2194190  2204996  21.677000
+ch206_file36   11173       4373823  4384996  29.794000</code></pre></figure>
+
+<p>Note the increase in zscores; the same two reads are plotted:</p>
+
+<table>
+<tr>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__noclosest.png" alt="ch277_file143 noclosest" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__noclosest.png" alt="ch401_file98 noclosest" style="width: 400px;" /> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__noclosest.png" alt="ch206_file36 noclosest" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__noclosest.png" alt="ch241_file2 noclosest" style="width: 400px;" /> </td>
+</tr>
+</table>
+
+<p>With a few other tweaks - keeping track of the top 10 candidates,
+and for each re-testing by recalibrating given the inferred mapping
+and rescoring - we can get about 95%-99% accuracy in mapping.</p>
+
+<p><img src="/assets/kdtreemapping/dotplot.png" alt="kd-tree approximate mapping vs BWA MEM mapping positions" /></p>
+
+<p>Of course, while 95-99% (Q13-Q20) mapping accuracy on <em>E. coli</em> is
+a cute outcome from such a simple approach, it isn’t nearly
+enough; with <script type="math/tex">d=8</script> and <script type="math/tex">k=5</script>, wer’e working with seeds of
+size 12, which would typically be unique in the <em>E. coli</em> reference,
+but certainly wouldn’t be in the human genome, or for metagenomic
+applications.</p>
+
+<h3 id="em-rescaling">EM Rescaling</h3>
+
+<p>One limiting factor is the approximate nature of the rescaling so
+far that is being performed; for reads that have been basecalled,
+the inferred shift values above can be off by several picoamps from
+the Metrichor values, which clearly causes both false negatives and
+false positives in the index lookup.  This can be addressed by doing
+a more careful rescaling step, using EM iterations:</p>
+
+<ul>
+  <li>For the E-step, provisionally assign probabilities of read events
+corresponding to model levels, based on the Gaussian distributions 
+described in the model and a simple transition matrix between events;</li>
+  <li>For the M-step, perform a weighted least squares regression to
+re-scale the read levels.</li>
+</ul>
+
+<p>This gives answers that are quite good when compared with Metrichor,
+at the cost of substantially more computational effort (much greater
+than the spatial index lookup!), particularly for long reads and
+larger (k) where the number of model levels is larger:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>./index-and-map.sh noclosest templateonly rescale
+5mer data: 
+<span class="o">[</span>...]
+real	7m1.866s
+user	6m56.708s
+sys	0m29.236s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch401_file98   19          2328329  2328348  14.975000
+ch277_file143  819         3079177  3079996  22.516000
+ch498_file171  1130        3793866  3794996  20.894000
+ch222_file28   1765        2803231  2804996  19.569000
+ch182_file148  2559        2767555  2764996  20.443000
+ch34_file53    4772        1128120  1123348  17.401000
+ch395_file89   5828        2069168  2074996  13.510000
+ch461_file9    6895        2195243  2188348  11.165000
+ch464_file15   7031        2195379  2188348  19.315000
+ch80_file64    10649       4369347  4379996  15.109000
+
+6mer data: 
+<span class="o">[</span>...]
+real	33m11.324s
+user	31m55.172s
+sys	2m0.836s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch383_file65   844         89152    89996    23.732000
+ch179_file92   3113        496461   493348   20.845000
+ch102_file146  4965        1378313  1373348  24.997000
+ch241_file2    5625        1578973  1573348  10.574000
+ch339_file119  5710        829058   823348   26.816000
+ch228_file128  5933        3809063  3814996  21.397000
+ch209_file0    6119        4564467  4558348  24.546000
+ch485_file6    6739        400087   393348   24.790000
+ch412_file79   10806       2194190  2204996  25.477000
+ch206_file36   11173       4373823  4384996  30.164000</code></pre></figure>
+
+<p>Note again the increase in zscores; replotting gives:</p>
+
+<table>
+<tr>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__rescale.png" alt="ch277_file143 rescale" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__rescale.png" alt="ch401_file98 rescale" style="width: 400px;" /> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__rescale.png" alt="ch206_file36 rescale" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__rescale.png" alt="ch241_file2 rescale" style="width: 400px;" /> </td>
+</tr>
+</table>
+
+<h3 id="extending-the-seeds">Extending the seeds</h3>
+
+<p>So far we have in no way taken into account any of the locality
+information in the spatial index lookup results; that is, that a long
+series of hits close together, in the same order on the read and on the
+reference, is much stronger evidence for a good mapping than a haphazard
+series of hits in random order that happen to fall within the same bin
+of starting points.</p>
+
+<p>Keeping with the do-the-simplest-thing approach that has worked so
+far, we can try to extend these “seed” matches by stitching them
+together into longer seeds; here we build 15-mers out of sets of 4
+neighbouring 12-mers, allowing one skip or stay somewhere within
+them, using as a score for the result the minimum of the constituent
+scores, and dropping all hits that cannot be so extended.  This has
+quite modest additional cost, and works quite well:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>./index-and-map.sh noclosest templateonly rescale extend
+5mer data: 
+
+<span class="o">[</span>...]
+real	7m20.914s
+user	7m19.228s
+sys	0m23.620s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch498_file171  1130        3793866  3794996  28.762000
+ch222_file28   1765        2803231  2804996  27.434000
+ch461_file9    1895        2195243  2193348  29.089000
+ch182_file148  2559        2767555  2764996  29.538000
+ch34_file53    4772        1128120  1123348  28.837000
+ch401_file98   4981        2328329  2323348  23.840000
+ch277_file143  5819        3079177  3084996  29.832000
+ch395_file89   5828        2069168  2074996  23.705000
+ch464_file15   7031        2195379  2188348  28.941000
+ch80_file64    10649       4369347  4379996  26.926000
+
+6mer data: 
+<span class="o">[</span>...]
+real	33m57.863s
+user	32m58.236s
+sys	1m42.548s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch241_file2    625         1578973  1578348  25.137000
+ch485_file6    1739        400087   398348   30.297000
+ch339_file119  5710        829058   823348   31.856000
+ch383_file65   5844        89152    94996    30.163000
+ch228_file128  5933        3809063  3814996  29.294000
+ch209_file0    6119        4564467  4558348  30.169000
+ch179_file92   8113        496461   488348   28.732000
+ch102_file146  9965        1378313  1368348  30.107000
+ch412_file79   10806       2194190  2204996  30.377000
+ch206_file36   11173       4373823  4384996  33.896000</code></pre></figure>
+
+<table>
+<tr>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__extend.png" alt="ch277_file143 extend" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__extend.png" alt="ch401_file98 extend" style="width: 400px;" /> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__extend.png" alt="ch206_file36 extend" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__extend.png" alt="ch241_file2 extend" style="width: 400px;" /> </td>
+</tr>
+</table>
+
+<p>Now that we seem to have much stronger and more specific results,
+we can investigate letting go of binning, and instead string these
+extended seeds into longest possible matches.  Continuing to extend
+dmer-by-dmer is too challenging due to missing points (due to
+mis-calibration, too large noise in the dmer falling out of the
+maxdist window in the kdtree, or several skip/stays in a row), so
+following the ideas of graphmap<sup id="fnref:1:2"><a href="#fn:1" class="footnote">1</a></sup> and minimap<sup id="fnref:5:1"><a href="#fn:5" class="footnote">5</a></sup>, we trace
+collinear seeds through the set of available seeds; rather than
+just taking longest increasing sequences in inferred start positions,
+however, we make a graph of seeds with edges connecting  seeds that
+are monotonically increasing both in read location and reference
+location with ‘small enough’ jumps, and extract longest paths through
+this graph.  The cost of this is smaller than the rescaling of the read.</p>
+
+<p>Running this, the zscores now somewhat change meaning; only the extracted
+paths are scored, meaning that the scores are only amongst plausible
+mappings, not over all bins across the reference.  Similarly, the differences
+in mapping locations are somewhat more meaningful - rather than being compared
+to bin centres, they are actually the differences between mapping locations.</p>
+
+<p>We get:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">5mer data: 
+<span class="o">[</span>...]
+
+real	6m54.776s
+user	6m52.064s
+sys	0m23.648s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch461_file9    10          2195243  2195253  7.105000
+ch34_file53    343         1128120  1128463  12.449000
+ch401_file98   363         2328329  2328692  5.320000
+ch464_file15   2826        2195379  2192553  13.267000
+ch498_file171  3192        3793866  3797058  7.688000
+ch182_file148  5450        2767555  2773005  10.107000
+ch222_file28   5681        2803231  2808912  8.166000
+ch277_file143  6381        3079177  3085558  9.190000
+ch395_file89   7191        2069168  2076359  7.685000
+ch80_file64    15167       4369347  4384514  7.965000
+
+
+6mer data: 
+<span class="o">[</span>...]
+
+real	43m37.651s
+user	42m37.208s
+sys	1m42.848s
+Template Only Alignments
+Read           Difference  BWA      KDTree   zscore
+ch209_file0    14          4564467  4564453  31.724000
+ch485_file6    14          400087   400073   24.063000
+ch241_file2    203         1578973  1578770  26.676000
+ch179_file92   723         496461   495738   39.626000
+ch339_file119  774         829058   828284   45.636000
+ch102_file146  1568        1378313  1376745  45.601000
+ch383_file65   5890        89152    95042    27.902000
+ch228_file128  8120        3809063  3817183  35.863000
+ch412_file79   13833       2194190  2208023  48.444000
+ch206_file36   15650       4373823  4389473  38.441000</code></pre></figure>
+
+<table>
+<tr>
+<td> 5mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch277_file143__longest.png" alt="ch277_file143 longest" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch401_file98__longest.png" alt="ch401_file98 longest" style="width: 400px;" /> </td>
+</tr>
+<tr>
+<td> 6mer </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch206_file36__longest.png" alt="ch206_file36 longest" style="width: 400px;" /> </td>
+<td> <img src="/assets/kdtreemapping/saveplots/ch241_file2__longest.png" alt="ch241_file2 longest" style="width: 400px;" /> </td>
+</tr>
+</table>
+
+<p>The simple python testbed implementation of these ideas linked to above
+is very slow, single-threaded, absurdly memory hungry, and its treatment
+of scores for the mappings does not currently make much sense.  In
+the new year we will address these issues in a proper C++ implementation,
+where (for instance) we will not have multiple copies of large, reference-sized
+data structures.</p>
+
+<hr />
+
+<h3 id="references">References</h3>
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:1">
+      <p><a href="http://biorxiv.org/content/early/2015/06/10/020719">Fast and sensitive mapping of error-prone nanopore sequencing reads with GraphMap</a> (2015) by Sovic, Sikic, Wilm, <em>et al.</em> <a href="#fnref:1" class="reversefootnote">&#8617;</a> <a href="#fnref:1:1" class="reversefootnote">&#8617;<sup>2</sup></a> <a href="#fnref:1:2" class="reversefootnote">&#8617;<sup>3</sup></a></p>
+    </li>
+    <li id="fn:2">
+      <p><a href="http://arxiv.org/abs/1505.02710">Near-optimal RNA-Seq quantification</a> (2015) by Bray, Pimentel, Melsted, and Pachter <a href="#fnref:2" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:3">
+      <p><a href="http://biorxiv.org/content/early/2015/06/27/021592">Salmon: Accurate, Versatile and Ultrafast Quantification from RNA-seq Data using Lightweight-Alignment</a> (2015) by Patro, Duggal, and Kingsford <a href="#fnref:3" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:4">
+      <p><a href="https://github.com/COMBINE-lab/RapMap">RapMap</a>, COMBINE lab <a href="#fnref:4" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:5">
+      <p><a href="http://arxiv.org/abs/1512.01801">Minimap and miniasm: fast mapping and denovo assembly for noisy long sequences</a>, Heng Li <a href="#fnref:5" class="reversefootnote">&#8617;</a> <a href="#fnref:5:1" class="reversefootnote">&#8617;<sup>2</sup></a></p>
+    </li>
+  </ol>
+</div>
+</content>
+   </entry>
+  
+ 
+  
+   <entry>
+     <title>Nanopolish v0.4.0</title>
+     <link href="http://simpsonlab.github.io/2015/10/07/nanopolish-v0.4.0/"/>
+     <updated>2015-10-07T00:00:00-07:00</updated>
+     <id>simpsonlab.github.io/2015/10/07/nanopolish-v0.4.0</id>
+     <content type="html"><p>This is a long overdue post describing recent changes to <a href="https://github.com/jts/nanopolish">nanopolish</a>.</p>
+
+<h3 id="sqk006-support">SQK006 Support</h3>
+
+<p>Last month Oxford Nanopore released a new sequencing kit, SQK006. As Nick <a href="http://lab.loman.net/2015/09/24/first-sqk-map-006-experiment/">notes</a> there are two important changes that affect how we model the data. Most importantly, ONT changed their basecaller to use 6-mers rather than 5-mers. The relationship between the DNA sequence in the pore and the measured signals is not simple (to understate the problem). By moving to a signal model with longer context the effect of long-range interactions that are not captured by shorter k-mer is hopefully reduced, which may improve read accuracy. In nanopolish v0.4.0 we now support the 6-mer model. This required reworking our data structures to allow either a 5-mer or 6-mer model depending on what sequencing kit was used to generate the data.</p>
+
+<p>SQK006 also brings an increase in speed - from 30bp/s (SQK005) to 70bp/s (SQK006). With the sampling rate fixed to 3kHz we naturally expect more events to be missed by the event detector. We observed this in our analysis of SQK006 data and updated the initial transition probabilities in our HMM accordingly.</p>
+
+<h4 id="sqk006-accuracy">SQK006 Accuracy</h4>
+
+<p>We were quite curious to see how well the new data performs in practice. Nick and Josh made four runs with SQK006 kits - two of native E. coli DNA and two of PCR-treated E. coli DNA to remove DNA damage, base modifications and other artefacts. I downloaded one of the native runs and one of the PCR-treated runs and used it to make a new consensus sequence for the draft assembly in our <a href="http://www.nature.com/nmeth/journal/v12/n8/full/nmeth.3444.html">paper</a>. As before we use dnadiff from <a href="http://mummer.sourceforge.net/">mummer</a> to calculate percent identity, the number of SNPs and the number of indels with respect to the E. coli K12 reference genome.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Kit, Coverage</th>
+      <th>Percent Identity</th>
+      <th># SNPs</th>
+      <th># Indels</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>SQK005, 29X</td>
+      <td>99.48%</td>
+      <td>1,343</td>
+      <td>22,601</td>
+    </tr>
+    <tr>
+      <td>SQK006, 48X</td>
+      <td>99.78%</td>
+      <td>644</td>
+      <td>9,697</td>
+    </tr>
+    <tr>
+      <td>SQK006-PCR, 30X</td>
+      <td>99.82%</td>
+      <td>222</td>
+      <td>8,200</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The accuracy of our assembly is much better with SQK006 data. Most of this improvement is due to better representation of homopolymer sequences. Interestingly the PCR-treated run gave the best results despite being lower coverage than the native DNA run. It is tempting to attribute this to providing cleaner DNA to the nanopore but this requires further exploration first.</p>
+
+<h3 id="eventalign">Eventalign</h3>
+
+<p>In a previous post I introduced the <a href="http://simpsonlab.github.io/2015/04/08/eventalign/">eventalign</a> submodule, which uses the hidden Markov model to align events to a reference genome. In nanopolish v0.4.0 there are a few eventalign changes and new features. The bulky <code class="highlighter-rouge">model_name</code> field has been removed from the output - it bloated the file as every row for a particular read would contain the same information. This read-level information has been moved to a secondary output file which can be enabled with the <code class="highlighter-rouge">--summary FILE</code> option. The summary file contains the path to the FAST5 file and model name for each read, along with the number of aligned events and other metadata that may be useful for exploring the alignments.</p>
+
+<h4 id="experimental-sam-output">Experimental SAM output</h4>
+
+<p>eventalign now has an optional <code class="highlighter-rouge">--sam</code> flag which will write the alignment in a modified version of the SAM format. By example:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>example_2d_read.template    0   chr1    10001   60  9950S4M1I1M2I1M1... *   0   0   *   * ES:i:1
+</code></pre>
+</div>
+
+<p>Most of these fields should be familiar - the alignment contains a read name (annotated with the sequenced strand) followed by flags, a reference name and the alignment start position. Similar to a base-to-base alignment the CIGAR string describes the alignment of events to reference k-mers. <code class="highlighter-rouge">9950S4M</code> indicates <code class="highlighter-rouge">9950</code> events should be skipped. The next event, <code class="highlighter-rouge">9951</code>, aligns to the k-mer starting at reference position <code class="highlighter-rouge">10001</code>, followed by three consecutive matches and so on. Sequence and quality information is not stored. The <code class="highlighter-rouge">ES</code> auxiliary tag is the <em>event stride</em> - whether the event indices are increasing along the reference sequence (<code class="highlighter-rouge">ES:i:1</code>) or whether they are decreasing (<code class="highlighter-rouge">ES:i:-1</code>). The nanopolish parser for this format is <a href="https://github.com/jts/nanopolish/blob/master/src/alignment/nanopolish_alignment_db.cpp#L347">here</a>.</p>
+
+<p>There are a few reasons for using this format. First, it is much smaller than the eventalign tsv output. Second, by adopting sam/bam instead of creating a new binary format we can use the existing <code class="highlighter-rouge">samtools/htslib</code> ecosystem. Crucially, we can use <code class="highlighter-rouge">htslib</code> to provide random access into the alignments for an indexed bam file. This format was developed through discussions with Vadim Zalunin, Ewan Birney, Mick Watson and others. Comments welcome.</p>
+</content>
+   </entry>
+  
  
   
    <entry>
      <title>Merging Structural Variant Calls from Different Callers</title>
      <link href="http://simpsonlab.github.io/2015/06/15/merging-sv-calls/"/>
-     <updated>2015-06-15T00:00:00-04:00</updated>
+     <updated>2015-06-15T00:00:00-07:00</updated>
      <id>simpsonlab.github.io/2015/06/15/merging-sv-calls</id>
      <content type="html"><p>As part of the work of the <a href="http://pancancer.info/variant_calling.html">Pancancer variant-calling working
 group</a>, we needed to merge the
@@ -38,10 +879,10 @@ containing an A → G SNV at chromosome 1, position 100, a
 3 base-pair deletion at chromosome 2, position 200, and a 5 basepair
 insertion at chromosome 3, position 300 would look something like this:</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#CHROM POS  ID  REF     ALT     ..</span>
-<span class="m">1</span>       <span class="m">100</span> .   A       G   
-<span class="m">2</span>       <span class="m">200</span> .   CGTA    C
-<span class="m">3</span>       <span class="m">300</span> .   T       TACGTA</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#CHROM POS  ID  REF     ALT     ..</span>
+1       100 .   A       G   
+2       200 .   CGTA    C
+3       300 .   T       TACGTA</code></pre></figure>
 
 <p>Even this admits some ambiguity; for instance, a deletion of 3 As within a
 homopolymer run of 10 of them could reasonably be called at any of 8 positions;
@@ -107,13 +948,13 @@ ensure the closest match is found, the search is by distance (pos+0, pos±1, …
 
 <ul>
   <li>The other chromosome and position of the other breakend (eg, 1:800 in the diagrams above)</li>
-  <li>The orientation of the second breakend; whether this is the half-interval which starts at the given position and extends rightwards, <code>[1:800[</code>, or extends from the left and ends at the position given, <code>]1:800]</code>.</li>
+  <li>The orientation of the second breakend; whether this is the half-interval which starts at the given position and extends rightwards, <code class="highlighter-rouge">[1:800[</code>, or extends from the left and ends at the position given, <code class="highlighter-rouge">]1:800]</code>.</li>
   <li>Finally, the relative orientation of the first breakpoint and its direction is specified using the position of other bases relative to the second breakpoint.
     <ul>
-      <li>In the examples in the figure, ‘N’ is given in the REF field; the position of that N relative to the <code>]1:800]</code> or <code>[1:800[</code> tells you whether the breakpoint involving 1:500 is joined before or after.</li>
+      <li>In the examples in the figure, ‘N’ is given in the REF field; the position of that N relative to the <code class="highlighter-rouge">]1:800]</code> or <code class="highlighter-rouge">[1:800[</code> tells you whether the breakpoint involving 1:500 is joined before or after.</li>
       <li>If after, it is the half-interval including that position and extending rightwards, other it is the breakpoint including that position extending to the left.</li>
       <li>That combined with the relative orientation of the second interval is enough to establish the adjacency.</li>
-      <li>The <code>N</code>, of course, could be a real base, if known; and the corresponding bases listed in the ALT field could be one or more different bases, as would be the case if a substitution occurred at or insertion occured between the two half-intervals being joined at the new adjacency.</li>
+      <li>The <code class="highlighter-rouge">N</code>, of course, could be a real base, if known; and the corresponding bases listed in the ALT field could be one or more different bases, as would be the case if a substitution occurred at or insertion occured between the two half-intervals being joined at the new adjacency.</li>
     </ul>
   </li>
 </ul>
@@ -129,20 +970,20 @@ ensure the closest match is found, the search is by distance (pos+0, pos±1, …
   </thead>
   <tbody>
     <tr>
-      <td><code>1   500 .   N   N[1:800[</code></td>
-      <td><code>1    800 .   N   ]1:500]N</code></td>
+      <td><code class="highlighter-rouge">1   500 .   N   N[1:800[</code></td>
+      <td><code class="highlighter-rouge">1    800 .   N   ]1:500]N</code></td>
     </tr>
     <tr>
-      <td><code>1   500 .   N   ]1:800]N</code></td>
-      <td><code>1    800 .   N   N[1:500[</code></td>
+      <td><code class="highlighter-rouge">1   500 .   N   ]1:800]N</code></td>
+      <td><code class="highlighter-rouge">1    800 .   N   N[1:500[</code></td>
     </tr>
     <tr>
-      <td><code>1   500 .   N   [1:800[N</code></td>
-      <td><code>1    800 .   N   [1:500[N</code></td>
+      <td><code class="highlighter-rouge">1   500 .   N   [1:800[N</code></td>
+      <td><code class="highlighter-rouge">1    800 .   N   [1:500[N</code></td>
     </tr>
     <tr>
-      <td><code>1   500 .   N   N]1:800]</code></td>
-      <td><code>1    800 .   N   N]1:500]</code></td>
+      <td><code class="highlighter-rouge">1   500 .   N   N]1:800]</code></td>
+      <td><code class="highlighter-rouge">1    800 .   N   N]1:500]</code></td>
     </tr>
   </tbody>
 </table>
@@ -173,20 +1014,20 @@ convention is to use a “connection” field, CT, to indicate whether the 5’ 
   </thead>
   <tbody>
     <tr>
-      <td><code>1   500 .   N   N[1:800[</code></td>
-      <td><code>1    500 .   N   &lt;TRA&gt;   ... CHR2=1;END=800;CT='3to5'</code></td>
+      <td><code class="highlighter-rouge">1   500 .   N   N[1:800[</code></td>
+      <td><code class="highlighter-rouge">1    500 .   N   &lt;TRA&gt;   ... CHR2=1;END=800;CT='3to5'</code></td>
     </tr>
     <tr>
-      <td><code>1   500 .   N   ]1:800]N</code></td>
-      <td><code>1    500 .   N   &lt;TRA&gt;   ... CHR2=1;END=800;CT='5to3'</code></td>
+      <td><code class="highlighter-rouge">1   500 .   N   ]1:800]N</code></td>
+      <td><code class="highlighter-rouge">1    500 .   N   &lt;TRA&gt;   ... CHR2=1;END=800;CT='5to3'</code></td>
     </tr>
     <tr>
-      <td><code>1   500 .   N   [1:800[N</code></td>
-      <td><code>1    500 .   N   &lt;TRA&gt;   ... CHR2=1;END=800;CT='5to5'</code></td>
+      <td><code class="highlighter-rouge">1   500 .   N   [1:800[N</code></td>
+      <td><code class="highlighter-rouge">1    500 .   N   &lt;TRA&gt;   ... CHR2=1;END=800;CT='5to5'</code></td>
     </tr>
     <tr>
-      <td><code>1   500 .   N   N]1:800]</code></td>
-      <td><code>1    500 .   N   &lt;TRA&gt;   ... CHR2=1;END=800;CT='3to3'</code></td>
+      <td><code class="highlighter-rouge">1   500 .   N   N]1:800]</code></td>
+      <td><code class="highlighter-rouge">1    500 .   N   &lt;TRA&gt;   ... CHR2=1;END=800;CT='3to3'</code></td>
     </tr>
   </tbody>
 </table>
@@ -217,20 +1058,20 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
   </thead>
   <tbody>
     <tr>
-      <td><code>1    10 .   N   &lt;DEL&gt;   ... END=20;</code></td>
-      <td><code>1	10	.	N	N[1:21[</code></td>
+      <td><code class="highlighter-rouge">1    10 .   N   &lt;DEL&gt;   ... END=20;</code></td>
+      <td><code class="highlighter-rouge">1	10	.	N	N[1:21[</code></td>
     </tr>
     <tr>
-      <td><code>1    10 .   N   &lt;INV&gt;   ... END=20;</code></td>
-      <td><code>1	10	.	N	N]1:20]</code></td>
+      <td><code class="highlighter-rouge">1    10 .   N   &lt;INV&gt;   ... END=20;</code></td>
+      <td><code class="highlighter-rouge">1	10	.	N	N]1:20]</code></td>
     </tr>
     <tr>
       <td> </td>
-      <td><code>1	11	.	N	[1:21[N</code></td>
+      <td><code class="highlighter-rouge">1	11	.	N	[1:21[N</code></td>
     </tr>
     <tr>
-      <td><code>1    1 .   N   &lt;DUP&gt;   ... END=10;</code></td>
-      <td><code>1	1	.	N	]1:10]N</code></td>
+      <td><code class="highlighter-rouge">1    1 .   N   &lt;DUP&gt;   ... END=10;</code></td>
+      <td><code class="highlighter-rouge">1	1	.	N	]1:10]N</code></td>
     </tr>
   </tbody>
 </table>
@@ -264,7 +1105,7 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
    <entry>
      <title>On Random vs. Streaming I/O Performance; Or Seek(), and You Shall Find &ndash; Eventually.</title>
      <link href="http://simpsonlab.github.io/2015/05/19/io-performance/"/>
-     <updated>2015-05-19T00:00:00-04:00</updated>
+     <updated>2015-05-19T00:00:00-07:00</updated>
      <id>simpsonlab.github.io/2015/05/19/io-performance</id>
      <content type="html"><p>Last week, <a href="http://ivory.idyll.org/blog/">Titus Brown</a> asked a question on <a href="https://twitter.com/ctitusbrown/status/599220862311469056">twitter</a> and <a href="https://github.com/dib-lab/khmer/issues/1002">github</a> which spurred a lot of discussion – what was the best way to randomly read a subset of entries in a FASTQ file?  He and others quickly mentioned the two basic approaches – randomly seeking around in the file, and streaming the file through and selecting at random – and there were discussions of the merits of each in both forums.</p>
 
@@ -294,7 +1135,7 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
 
 <p>Much as the operating system and disk controller both work to schedule reads and writes so that they are collectively completed as quickly as possible, the entire input/output stack on modern operating systems is built to make sure that it speeds up I/O whenever possible – and it is extremely successful at doing this, when the I/O behaves predictably.  Predictable, here, means that there is a large degree of <a href="http://en.wikipedia.org/wiki/Locality_of_reference">locality of reference</a> in the access; either temporal locality (if you’ve accessed a piece of data recently, you’re likely to access it again), or spatial (if you’ve accessed a piece of data, you’re likely to access a nearby piece soon).</p>
 
-<p>Temporal locality is handled through caching; data that is read in is kept handy in case it’s needed again.  There may be block caches on the disk drive or disk controller itself; within the Linux kernel there is a unified cache which caches both low-level blocks and high level pages worth of data (the memory-mapped file interface ties directly into this).  Directory information is cached there, too; you may have noticed that in doing an <code>ls -l</code> in a directory with a lot of files, the first is much slower than any followups.</p>
+<p>Temporal locality is handled through caching; data that is read in is kept handy in case it’s needed again.  There may be block caches on the disk drive or disk controller itself; within the Linux kernel there is a unified cache which caches both low-level blocks and high level pages worth of data (the memory-mapped file interface ties directly into this).  Directory information is cached there, too; you may have noticed that in doing an <code class="highlighter-rouge">ls -l</code> in a directory with a lot of files, the first is much slower than any followups.</p>
 
 <p>In user space, I/O libraries often do their own caching, as well.  C’s stdlib, for instance, will cache substantial amounts of recently used data; and so, by extension, will everything built upon it (iostreams in C++, or lines of data seen by Python).  The various players are shown below in this diagram from IBM’s DeveloperWorks:</p>
 
@@ -325,7 +1166,7 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
 
 <p>Coding up a solution to randomly sample the file by seeking to random locations is relatively straightforward.  We generate a random set of offsets into the file, given the file’s size; then seek to each of these locations in order, find and read the next record, and continue.</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">randomSeek</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">):</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">randomSeek</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">):</span>
     <span class="n">infile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_SET</span><span class="p">)</span>
 
     <span class="n">totrecords</span> <span class="o">=</span> <span class="mi">0</span>
@@ -350,7 +1191,7 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
     <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">recordsdict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">records</span></code></pre></div>
+    <span class="k">return</span> <span class="n">records</span></code></pre></figure>
 
 <p>There are a few things to note about this approach:</p>
 
@@ -374,7 +1215,7 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
 
 <p>Our simple implementation follows; we select the first <script type="math/tex">k</script> items to fill the reservoir, and then randomly select through the rest of the file.</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">reservoir</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">):</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">reservoir</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">):</span>
     <span class="n">reader</span> <span class="o">=</span> <span class="n">simplefasta</span><span class="o">.</span><span class="n">FastaReader</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">nrecords</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrecords</span><span class="p">):</span>
@@ -390,7 +1231,7 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
         <span class="k">else</span><span class="p">:</span>
             <span class="n">reader</span><span class="o">.</span><span class="n">skipAhead</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">countsSoFar</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="k">return</span> <span class="n">results</span></code></pre></div>
+    <span class="k">return</span> <span class="n">results</span></code></pre></figure>
 
 <p>Note that this method does uniformly select records, and can work in pipes or through compressed files equally well as it passes sequentially through the entire file.</p>
 
@@ -413,7 +1254,7 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
   <li>Reservoir sampling works roughly equally well if it is operating directly on the file or having it piped through; and it actually can be somewhat faster for a gzipped file with zcat, since less data actually has to be pulled from the disk.</li>
 </ul>
 
-<p>We also tried the same test on gzipped files directly, since Python’s <a href="https://docs.python.org/2/library/gzip.html">gzipped file access</a> has a seek operation you can in principle use; but this isn’t really a fair test, as you can’t properly <code>seek</code> through a gzipped file, you have to decompress along the way.  That means the “seeking” approach is really just a streaming approach implemented much less efficiently, and we see that quite clearly:</p>
+<p>We also tried the same test on gzipped files directly, since Python’s <a href="https://docs.python.org/2/library/gzip.html">gzipped file access</a> has a seek operation you can in principle use; but this isn’t really a fair test, as you can’t properly <code class="highlighter-rouge">seek</code> through a gzipped file, you have to decompress along the way.  That means the “seeking” approach is really just a streaming approach implemented much less efficiently, and we see that quite clearly:</p>
 
 <p><img src="/assets/io/gzip-seek-vs-stream.png" alt="On gzipped files" /></p>
 
@@ -425,10 +1266,10 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
 
 <p>On linux, as root, you can completely clear caches with the following:</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>sync
-<span class="nv">$ </span><span class="nb">echo </span><span class="m">3</span> &gt; /proc/sys/vm/drop_caches</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>sync
+<span class="gp">$ </span><span class="nb">echo </span>3 &gt; /proc/sys/vm/drop_caches</code></pre></figure>
 
-<p>but this is rather overkill, and requires root.  Easier, but requiring more disk space (and a file system which is not too smart/aggressive about deduplication!) is to cycle between multiple copies of the same file.  The <code>getdata</code> script makes 5 copies each of the compressed and uncompressed est.trunc.fa file to cycle through, which may or may not be enough.</p>
+<p>but this is rather overkill, and requires root.  Easier, but requiring more disk space (and a file system which is not too smart/aggressive about deduplication!) is to cycle between multiple copies of the same file.  The <code class="highlighter-rouge">getdata</code> script makes 5 copies each of the compressed and uncompressed est.trunc.fa file to cycle through, which may or may not be enough.</p>
 
 <h2 id="other-file-stores-cluster-file-systems">Other File Stores: Cluster File Systems</h2>
 
@@ -468,7 +1309,7 @@ callers may call them using BND-style calls, or even &lt;TRA&gt; calls, they hav
 
 <h3 id="software-turning-off-os-caching">Software: turning off OS caching</h3>
 
-<p>A smaller possible gain could be realized, for small sample fractions, by hinting to the operating system not to provide expensive caching that will not be used by the seek-heavy access pattern.  This can be done by <a href="http://man7.org/linux/man-pages/man2/open.2.html">opening the file with O_DIRECT</a>, or using <a href="https://docs.python.org/dev/library/os.html#os.posix_fadvise">posix_fadvise</a> which allows a more flexible method for hinting to the operating system not to bother prefetching or caching, respectively, by passing <code>POSIX_FADV_RANDOM </code>and <code>POSIX_FADV_NOREUSE</code>.  However, this is likely only helpful for very small sample fractions, where seeking is already doing pretty well; for moderate sample fractions, the prefetching can actually help (e.g., that downward trend in time taken at around 10%) so I did not include this in the benchmark.</p>
+<p>A smaller possible gain could be realized, for small sample fractions, by hinting to the operating system not to provide expensive caching that will not be used by the seek-heavy access pattern.  This can be done by <a href="http://man7.org/linux/man-pages/man2/open.2.html">opening the file with O_DIRECT</a>, or using <a href="https://docs.python.org/dev/library/os.html#os.posix_fadvise">posix_fadvise</a> which allows a more flexible method for hinting to the operating system not to bother prefetching or caching, respectively, by passing <code class="highlighter-rouge">POSIX_FADV_RANDOM </code>and <code class="highlighter-rouge">POSIX_FADV_NOREUSE</code>.  However, this is likely only helpful for very small sample fractions, where seeking is already doing pretty well; for moderate sample fractions, the prefetching can actually help (e.g., that downward trend in time taken at around 10%) so I did not include this in the benchmark.</p>
 
 <h2 id="how-to-further-improve-sequential-results">How to further improve sequential results</h2>
 
@@ -484,7 +1325,7 @@ uncommon, and those would benefit the reservoir method here.</p>
 <p>While Python is excellent for many purposes, there is no question but that it is
 slower than compiled languages like C++.  FASTA parsing is quite simple, and
 for very small sampling fractions, there is no good reason that the resevoir solution should be a
-factor of two or more slower than running <code>wc -l</code>.  This hurts the reservoir
+factor of two or more slower than running <code class="highlighter-rouge">wc -l</code>.  This hurts the reservoir
 sampling more than the streaming, as the resevoir approach (which parses records which then
 get bumped later) must parse ~17 times more records in this test than the seeking method.</p>
 
@@ -495,7 +1336,7 @@ there may be some modest benefit to turning off <em>caching</em> of the data we
 read in; after all, even with the reservoir sampling, we are still only
 processing each record at most once.  Again, we could use
 <a href="https://docs.python.org/dev/library/os.html#os.posix_fadvise">posix_fadvise</a>,
-this time with only <code>POSIX_FADV_NOREUSE</code>.  I again expect this to be a
+this time with only <code class="highlighter-rouge">POSIX_FADV_NOREUSE</code>.  I again expect this to be a
 relatively small effect, and so it is not tested here.</p>
 
 <h2 id="conclusion-io-is-complicated-but-streaming-is-pretty-fast">Conclusion: I/O is Complicated, But Streaming is Pretty Fast</h2>
@@ -513,7 +1354,7 @@ relatively small effect, and so it is not tested here.</p>
    <entry>
      <title>Understanding Partial Order Alignment for Multiple Sequence Alignment</title>
      <link href="http://simpsonlab.github.io/2015/05/01/understanding-poa/"/>
-     <updated>2015-05-01T00:00:00-04:00</updated>
+     <updated>2015-05-01T00:00:00-07:00</updated>
      <id>simpsonlab.github.io/2015/05/01/understanding-poa</id>
      <content type="html"><p>Jared’s <a href="https://github.com/jts/nanopolish">nanopolish</a> tool for
 Nanopore data uses <a href="http://sourceforge.net/projects/poamsa/">poaV2</a>,
@@ -541,8 +1382,10 @@ CCGCTTTTCCGC
 CCGCAAAACCGC
 </pre>
 
-<p>There is ambiguity in selecting a single, best alignment between this
-pair of sequences; for instance below are 4 of 2<sup>8</sup> = 256 nearly equivalent
+<p>There is ambiguity in selecting a single, best alignment between
+this pair of sequences; for instance below are 4 of</p>
+<s>2<sup>8</sup>&nbsp;=&nbsp;256</s>
+<p>8 choose 4 = 105 nearly equivalent
 ways of expressing this pairwise alignment. The best alignment will
 depend on the particular gap-scoring scheme used.</p>
 
@@ -589,9 +1432,9 @@ var edges = [
 </script>
 
 <p>The partial order alignment graph differs from the alignment strings
-in that a given base can have multiple predecessors (<em>eg</em>, the <code>C</code>
-after the fork being preceeded by both a string of <code>A</code>s and of <code>T</code>s)
-or successors (<em>eg</em>, the <code>C</code> before the fork).  But it is similar to
+in that a given base can have multiple predecessors (<em>eg</em>, the <code class="highlighter-rouge">C</code>
+after the fork being preceeded by both a string of <code class="highlighter-rouge">A</code>s and of <code class="highlighter-rouge">T</code>s)
+or successors (<em>eg</em>, the <code class="highlighter-rouge">C</code> before the fork).  But it is similar to
 the alignment strings in that there is a directional order imposed,
 both in the sense that each node has (zero or more) predecessors and
 (zero or more) successors, but also that no repetition, or doubling
@@ -680,7 +1523,7 @@ successor begins its calculation.</p>
 ordering of nodes in which every node is guaranteed to follow all of
 its predecessors.  This is always possible for a directed graph as long
 as there are no cycles, and indeed there can be many such orderings.
-Topological sorts are how <code>make</code> and similar tools decide in which order 
+Topological sorts are how <code class="highlighter-rouge">make</code> and similar tools decide in which order 
 to perform tasks in a workflow, and how many<sup id="fnref:6"><a href="#fn:6" class="footnote">6</a></sup> spreadsheet programs decide 
 if cells need to be updated.</p>
 
@@ -702,8 +1545,8 @@ perfectly well for the dynamic programming problem.</p>
 
 <h3 id="insertion-of-aligned-sequence">Insertion of aligned sequence</h3>
 
-<p>Consider that we have a graph that so far only contains the sequence <code>CGCTTAT</code>,
-and our dynamic programming calculation aligning the sequence <code>CGATTACG</code> has
+<p>Consider that we have a graph that so far only contains the sequence <code class="highlighter-rouge">CGCTTAT</code>,
+and our dynamic programming calculation aligning the sequence <code class="highlighter-rouge">CGATTACG</code> has
 given us an alignment that looks like this:</p>
 
 <pre>
@@ -743,9 +1586,9 @@ var edges = [
 
 <p>Here we see for the first time two types of edges; bold, directed edges
 (with directions not shown, but left-to-right), indicating
-predecessor/successor; and dashed lines, indicating that (say) the <code>A</code> and <code>C</code>
+predecessor/successor; and dashed lines, indicating that (say) the <code class="highlighter-rouge">A</code> and <code class="highlighter-rouge">C</code>
 that are three bases from the start are aligned to each other, but are
-mismatches; similarly with the <code>C</code> and <code>T</code> towards the end.</p>
+mismatches; similarly with the <code class="highlighter-rouge">C</code> and <code class="highlighter-rouge">T</code> towards the end.</p>
 
 <p>We keep track of both the predecessor/successor nodes and all ‘aligned-to’
 nodes.  We walk along the sequence we are inserting and its calculated
@@ -865,7 +1708,7 @@ reading, as it uses numpy vectorization to improve performance.</p>
 
 <p>Even the faster implementation is still slow – about 10 times slower
 than the <a href="http://sourceforge.net/projects/poamsa/">poaV2</a> code written
-in C as distributed, or closer to 20 if poaV2 is compiled with <code>-O3</code>
+in C as distributed, or closer to 20 if poaV2 is compiled with <code class="highlighter-rouge">-O3</code>
 – but is nonetheless useable for small problems.</p>
 
 <p>The simple implementation above can generate HTML with an interactive
@@ -917,7 +1760,7 @@ of the method.</p>
    <entry>
      <title>Aligning Nanopore Events to a Reference</title>
      <link href="http://simpsonlab.github.io/2015/04/08/eventalign/"/>
-     <updated>2015-04-08T00:00:00-04:00</updated>
+     <updated>2015-04-08T00:00:00-07:00</updated>
      <id>simpsonlab.github.io/2015/04/08/eventalign</id>
      <content type="html"><h2 id="introduction">Introduction</h2>
 
@@ -1033,22 +1876,24 @@ of the method.</p>
 
 <p>The hidden Markov model we designed for the consensus problem had 5-mers of a proposed consensus sequence as the backbone of the HMM, with additional states and transitions to handle the skipping/splitting artefacts. In our preprint we used this HMM to calculate a consensus sequence from a set of reads. If we make a reference genome the backbone of the HMM, we can use it to align events to the reference.</p>
 
-<p>The new <code>eventalign</code> module of <code>nanopolish</code> exposes this functionality as a command line tool.  This program takes in a set of nanopore reads aligned in base-space to a reference sequence (or draft genome assembly) and re-aligns the reads in event space.</p>
+<p>The new <code class="highlighter-rouge">eventalign</code> module of <code class="highlighter-rouge">nanopolish</code> exposes this functionality as a command line tool.  This program takes in a set of nanopore reads aligned in base-space to a reference sequence (or draft genome assembly) and re-aligns the reads in event space.</p>
 
-<p>The pipeline uses <code>bwa mem</code> alignments as a guide. We start with a normal bwa workflow:</p>
+<p>The pipeline uses <code class="highlighter-rouge">bwa mem</code> alignments as a guide. We start with a normal bwa workflow:</p>
 
-<pre><code>bwa mem -x ont2d -t 8 ecoli_k12.fasta reads.fa | samtools view -Sb - | samtools sort - alignments.sorted
+<div class="highlighter-rouge"><pre class="highlight"><code>bwa mem -x ont2d -t 8 ecoli_k12.fasta reads.fa | samtools view -Sb - | samtools sort - alignments.sorted
 samtools index alignments.sorted.bam
 </code></pre>
+</div>
 
 <p>We can then realign in event space                                                   using nanopolish:</p>
 
-<pre><code>nanopolish eventalign -r reads.fa -b alignments.sorted.bam -g ecoli_k12.fasta "gi|556503834|ref|NC_000913.3|:10000-20000" &gt; eventalign.tsv
+<div class="highlighter-rouge"><pre class="highlight"><code>nanopolish eventalign -r reads.fa -b alignments.sorted.bam -g ecoli_k12.fasta "gi|556503834|ref|NC_000913.3|:10000-20000" &gt; eventalign.tsv
 </code></pre>
+</div>
 
 <p>The output looks like this:</p>
 
-<pre><code>contig                         position  reference_kmer  read_index  strand  event_index  event_level_mean  event_length  model_kmer  model_mean  model_stdv
+<div class="highlighter-rouge"><pre class="highlight"><code>contig                         position  reference_kmer  read_index  strand  event_index  event_level_mean  event_length  model_kmer  model_mean  model_stdv
 gi|556503834|ref|NC_000913.3|  10000     ATTGC           1           c       27470        50.57             0.022         ATTGC       50.58       1.02
 gi|556503834|ref|NC_000913.3|  10001     TTGCG           1           c       27471        52.31             0.023         TTGCG       51.68       0.73
 gi|556503834|ref|NC_000913.3|  10001     TTGCG           1           c       27472        53.05             0.056         TTGCG       51.68       0.73
@@ -1058,18 +1903,20 @@ gi|556503834|ref|NC_000913.3|  10002     TGCGC           1           c       274
 gi|556503834|ref|NC_000913.3|  10003     GCGCT           1           c       27476        67.11             0.017         GCGCT       68.08       2.20
 gi|556503834|ref|NC_000913.3|  10004     CGCTG           1           c       27477        69.47             0.052         CGCTG       69.84       1.89
 </code></pre>
+</div>
 
 <p>This is the complement strand (c) of a 2D Nanopore read from Nick’s <a href="http://www.gigasciencejournal.com/content/3/1/22">E. coli data</a> aligned to E. coli K12. The first event listed (event 27470) had a measured current level of 50.57 pA. It aligns to the reference 5-mer ATTGC at position 10,000 of the reference genome. The pore model indicates that events measured for 5-mer ATTGC should come from <script type="math/tex">\mathcal{N}(50.58, 1.02^2)</script>, which matches the observed data very well. The next 3 events (27471, 27472, 27473) are all aligned to the same reference 5-mer (TTGCG) indicating that the event detector erroneously called 3 events where only one should have been emitted. Note that the current for these 3 events are all plausibly drawn from the expected distribution <script type="math/tex">\mathcal{N}(51.68, 0.73^2)</script>.</p>
 
 <p>This output has one row for every event. If a reference 5-mer was skipped, there will be a gap in the output where no signal was observed:</p>
 
-<pre><code>gi|556503834|ref|NC_000913.3|   10009   GCACC   1       c       27489   67.52   0.028   GCACC   66.83   2.46
+<div class="highlighter-rouge"><pre class="highlight"><code>gi|556503834|ref|NC_000913.3|   10009   GCACC   1       c       27489   67.52   0.028   GCACC   66.83   2.46
 gi|556503834|ref|NC_000913.3|   10011   ACCGC   1       c       27490   65.17   0.012   ACCGC   65.03   1.92
 </code></pre>
+</div>
 
 <p>Here we did not observe an event for the 5-mer at position 10010.</p>
 
-<p>This module will hopefully make it easier to work with signal-level nanopore data, and help the development of improved models. The <code>eventalign</code> module can be found in the latest version of <a href="https://github.com/jts/nanopolish">nanopolish</a>.</p>
+<p>This module will hopefully make it easier to work with signal-level nanopore data, and help the development of improved models. The <code class="highlighter-rouge">eventalign</code> module can be found in the latest version of <a href="https://github.com/jts/nanopolish">nanopolish</a>.</p>
 </content>
    </entry>
   
@@ -1078,7 +1925,7 @@ gi|556503834|ref|NC_000913.3|   10011   ACCGC   1       c       27490   65.17   
    <entry>
      <title>Nanopolish v0.2.0</title>
      <link href="http://simpsonlab.github.io/2015/03/30/optimizing-hmm/"/>
-     <updated>2015-03-30T00:00:00-04:00</updated>
+     <updated>2015-03-30T00:00:00-07:00</updated>
      <id>simpsonlab.github.io/2015/03/30/optimizing-hmm</id>
      <content type="html"><p>This post describes changes I have made to <a href="https://github.com/jts/nanopolish">nanopolish</a>, our HMM-based consensus caller for Oxford Nanopore data. This post can be thought of as a long changelog with background and rationale.</p>
 
@@ -1092,17 +1939,17 @@ gi|556503834|ref|NC_000913.3|   10011   ACCGC   1       c       27490   65.17   
 
 <h2 id="improving-the-design">Improving the design</h2>
 
-<p>I was not satisfied with the Python/C++ hybrid design. I am sensitive to installation issues when releasing software as I have found that installing dependencies is a major source of problems for the user (although great projects like <a href="https://github.com/Homebrew/homebrew-science">homebrew-science</a> are helping a lot here). I admire Heng Li’s software where one usually just needs to run <code>git clone</code> and <code>make</code> to build the program. The initial version of nanopolish was far from this ideal as it depended on eight Python libraries that needed to be installed with <code>pip</code>. When moving between my local development version and Nick’s server I realized that installing these dependencies often failed. With this in mind I decided to rewrite the Python frontend in C++. To do this, I crucially needed a replacement for poretools which I used to access the raw data. Matei David in my group volunteered to help and wrote an excellent, intuitive C++ <a href="https://github.com/mateidavid/fast5">library</a> for parsing ONT’s FAST5 files.</p>
+<p>I was not satisfied with the Python/C++ hybrid design. I am sensitive to installation issues when releasing software as I have found that installing dependencies is a major source of problems for the user (although great projects like <a href="https://github.com/Homebrew/homebrew-science">homebrew-science</a> are helping a lot here). I admire Heng Li’s software where one usually just needs to run <code class="highlighter-rouge">git clone</code> and <code class="highlighter-rouge">make</code> to build the program. The initial version of nanopolish was far from this ideal as it depended on eight Python libraries that needed to be installed with <code class="highlighter-rouge">pip</code>. When moving between my local development version and Nick’s server I realized that installing these dependencies often failed. With this in mind I decided to rewrite the Python frontend in C++. To do this, I crucially needed a replacement for poretools which I used to access the raw data. Matei David in my group volunteered to help and wrote an excellent, intuitive C++ <a href="https://github.com/mateidavid/fast5">library</a> for parsing ONT’s FAST5 files.</p>
 
 <p>There were additional benefits to this rewrite. In the Python version I again used poa to compute an initial multiple alignment and used this to seed the HMM realignment. In the C++ version I discarded this step, removing another dependency, by calculating the initial alignment directly from the BAM file using <a href="https://github.com/samtools/htslib">htslib</a>. This simplification, along with the much faster parsing of the FAST5 files provided by Matei’s library, reduced startup time from a few minutes to a few seconds. This has helped me iterate on the code much faster during development.</p>
 
 <h2 id="improving-hmm-efficiency">Improving HMM efficiency</h2>
 
-<p>Despite writing the HMM in C++ the first version of nanopolish was very slow. After the Python to C++ rewrite I focused on improving run time. During development I use a lightweight header-only <a href="https://github.com/jts/sga/blob/master/src/Util/Profiler.h">profiler</a> to keep track of where time is being spent in my program. As expected over 90% of the time was spent running the forward algorithm on the hidden Markov model. I used the amazing <a href="https://perf.wiki.kernel.org/index.php/Tutorial">perf</a> kernel profiler to explore this further. <code>perf</code> indicated that most time was in the <script type="math/tex">\log()</script> and <script type="math/tex">\exp()</script> functions. The forward algorithm on HMMs requires summing log-transformed probabilities. The naive way, <script type="math/tex">c = \log(\exp(a) + \exp(b))</script>, requires two calls to <script type="math/tex">\exp</script> and one call to <script type="math/tex">\log</script> for every state/emission pair in the HMM. This is very slow and the subject of an entire section in the classic Biological Sequence Analysis text. I remembered reading Sean Eddy’s <a href="http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002195">paper</a> on accelerating HMMER3. In this paper Sean describes how the calculation can be improved by using the transformation <script type="math/tex">c = a + \log(1 + \exp(b - a))</script> where <script type="math/tex">a \geq b</script>. On the surface this would only save a single call to <script type="math/tex">\exp</script> but Sean goes further by using a table indexed by <script type="math/tex">b - a</script> to cache <script type="math/tex">\log(1 + \exp(b - a))</script>. This method completely removes the <script type="math/tex">\exp</script> and <script type="math/tex">\log</script> calls in the inner loop of our HMM. After plugging Sean’s implementation into nanopolish we immediately had an 8-fold improvement in speed. Thanks to Sean for allowing us to use this as public domain code.</p>
+<p>Despite writing the HMM in C++ the first version of nanopolish was very slow. After the Python to C++ rewrite I focused on improving run time. During development I use a lightweight header-only <a href="https://github.com/jts/sga/blob/master/src/Util/Profiler.h">profiler</a> to keep track of where time is being spent in my program. As expected over 90% of the time was spent running the forward algorithm on the hidden Markov model. I used the amazing <a href="https://perf.wiki.kernel.org/index.php/Tutorial">perf</a> kernel profiler to explore this further. <code class="highlighter-rouge">perf</code> indicated that most time was in the <script type="math/tex">\log()</script> and <script type="math/tex">\exp()</script> functions. The forward algorithm on HMMs requires summing log-transformed probabilities. The naive way, <script type="math/tex">c = \log(\exp(a) + \exp(b))</script>, requires two calls to <script type="math/tex">\exp</script> and one call to <script type="math/tex">\log</script> for every state/emission pair in the HMM. This is very slow and the subject of an entire section in the classic Biological Sequence Analysis text. I remembered reading Sean Eddy’s <a href="http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002195">paper</a> on accelerating HMMER3. In this paper Sean describes how the calculation can be improved by using the transformation <script type="math/tex">c = a + \log(1 + \exp(b - a))</script> where <script type="math/tex">a \geq b</script>. On the surface this would only save a single call to <script type="math/tex">\exp</script> but Sean goes further by using a table indexed by <script type="math/tex">b - a</script> to cache <script type="math/tex">\log(1 + \exp(b - a))</script>. This method completely removes the <script type="math/tex">\exp</script> and <script type="math/tex">\log</script> calls in the inner loop of our HMM. After plugging Sean’s implementation into nanopolish we immediately had an 8-fold improvement in speed. Thanks to Sean for allowing us to use this as public domain code.</p>
 
 <h2 id="improving-memory-layout">Improving memory layout</h2>
 
-<p>The <code>perf</code> output also indicated that a lot of CPU time was wasted waiting on memory access. To improve cache usage and reduce the amount of data that is transferred over the memory bus, I reduced the precision of the floating point values from 64 bits to 32 bits. At the same time, I changed the memory layout of the nanopore event signals so that data accessed together was located in contiguous memory locations. This change simply interleaved two arrays, one storing event currents and one storing event durations, into a single array of structs. Finally, I pre-computed all of the scalings and transformations that need to be applied to the nanopore events (for example the current signal drifts over time and this needs to be corrected for) to reduce the work in the inner loop of the HMM.</p>
+<p>The <code class="highlighter-rouge">perf</code> output also indicated that a lot of CPU time was wasted waiting on memory access. To improve cache usage and reduce the amount of data that is transferred over the memory bus, I reduced the precision of the floating point values from 64 bits to 32 bits. At the same time, I changed the memory layout of the nanopore event signals so that data accessed together was located in contiguous memory locations. This change simply interleaved two arrays, one storing event currents and one storing event durations, into a single array of structs. Finally, I pre-computed all of the scalings and transformations that need to be applied to the nanopore events (for example the current signal drifts over time and this needs to be corrected for) to reduce the work in the inner loop of the HMM.</p>
 
 <h2 id="summary">Summary</h2>
 
