@@ -4,24 +4,13 @@
  <title>Simpson Lab Blog</title>
  <link href="http://simpsonlab.github.io/atom.xml" rel="self"/>
  <link href="http://simpsonlab.github.io/"/>
- <updated>2016-02-02T14:18:44-08:00</updated>
+ <updated>2016-02-02T14:20:27-08:00</updated>
  <id>simpsonlab.github.io</id>
  <author>
    <name>Jared Simpson</name>
    <email></email>
  </author>
 
- 
-  
-   <entry>
-     <title>jekyll3 test</title>
-     <link href="http://simpsonlab.github.io/2016/02/02/testpost/"/>
-     <updated>2016-02-02T00:00:00-08:00</updated>
-     <id>simpsonlab.github.io/2016/02/02/testpost</id>
-     <content type="html"><p>A test post <script type="math/tex">x</script></p>
-</content>
-   </entry>
-  
  
   
    <entry>
