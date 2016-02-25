@@ -74,6 +74,10 @@
           
         
       
+        
+          
+        
+      
 
     </nav>
 
@@ -119,7 +123,7 @@
 
 <p>Much as the operating system and disk controller both work to schedule reads and writes so that they are collectively completed as quickly as possible, the entire input/output stack on modern operating systems is built to make sure that it speeds up I/O whenever possible – and it is extremely successful at doing this, when the I/O behaves predictably.  Predictable, here, means that there is a large degree of <a href="http://en.wikipedia.org/wiki/Locality_of_reference">locality of reference</a> in the access; either temporal locality (if you’ve accessed a piece of data recently, you’re likely to access it again), or spatial (if you’ve accessed a piece of data, you’re likely to access a nearby piece soon).</p>
 
-<p>Temporal locality is handled through caching; data that is read in is kept handy in case it’s needed again.  There may be block caches on the disk drive or disk controller itself; within the Linux kernel there is a unified cache which caches both low-level blocks and high level pages worth of data (the memory-mapped file interface ties directly into this).  Directory information is cached there, too; you may have noticed that in doing an <code class="highlighter-rouge">ls -l</code> in a directory with a lot of files, the first is much slower than any followups.</p>
+<p>Temporal locality is handled through caching; data that is read in is kept handy in case it’s needed again.  There may be block caches on the disk drive or disk controller itself; within the Linux kernel there is a unified cache which caches both low-level blocks and high level pages worth of data (the memory-mapped file interface ties directly into this).  Directory information is cached there, too; you may have noticed that in doing an <code>ls -l</code> in a directory with a lot of files, the first is much slower than any followups.</p>
 
 <p>In user space, I/O libraries often do their own caching, as well.  C’s stdlib, for instance, will cache substantial amounts of recently used data; and so, by extension, will everything built upon it (iostreams in C++, or lines of data seen by Python).  The various players are shown below in this diagram from IBM’s DeveloperWorks:</p>
 
@@ -150,7 +154,7 @@
 
 <p>Coding up a solution to randomly sample the file by seeking to random locations is relatively straightforward.  We generate a random set of offsets into the file, given the file’s size; then seek to each of these locations in order, find and read the next record, and continue.</p>
 
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">randomSeek</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">):</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">randomSeek</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">):</span>
     <span class="n">infile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_SET</span><span class="p">)</span>
 
     <span class="n">totrecords</span> <span class="o">=</span> <span class="mi">0</span>
@@ -175,7 +179,7 @@
     <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">recordsdict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">records</span></code></pre></figure>
+    <span class="k">return</span> <span class="n">records</span></code></pre></div>
 
 <p>There are a few things to note about this approach:</p>
 
@@ -199,7 +203,7 @@
 
 <p>Our simple implementation follows; we select the first <script type="math/tex">k</script> items to fill the reservoir, and then randomly select through the rest of the file.</p>
 
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">reservoir</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">):</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">reservoir</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">nrecords</span><span class="p">):</span>
     <span class="n">reader</span> <span class="o">=</span> <span class="n">simplefasta</span><span class="o">.</span><span class="n">FastaReader</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">nrecords</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrecords</span><span class="p">):</span>
@@ -215,7 +219,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">reader</span><span class="o">.</span><span class="n">skipAhead</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">countsSoFar</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="k">return</span> <span class="n">results</span></code></pre></figure>
+    <span class="k">return</span> <span class="n">results</span></code></pre></div>
 
 <p>Note that this method does uniformly select records, and can work in pipes or through compressed files equally well as it passes sequentially through the entire file.</p>
 
@@ -238,7 +242,7 @@
   <li>Reservoir sampling works roughly equally well if it is operating directly on the file or having it piped through; and it actually can be somewhat faster for a gzipped file with zcat, since less data actually has to be pulled from the disk.</li>
 </ul>
 
-<p>We also tried the same test on gzipped files directly, since Python’s <a href="https://docs.python.org/2/library/gzip.html">gzipped file access</a> has a seek operation you can in principle use; but this isn’t really a fair test, as you can’t properly <code class="highlighter-rouge">seek</code> through a gzipped file, you have to decompress along the way.  That means the “seeking” approach is really just a streaming approach implemented much less efficiently, and we see that quite clearly:</p>
+<p>We also tried the same test on gzipped files directly, since Python’s <a href="https://docs.python.org/2/library/gzip.html">gzipped file access</a> has a seek operation you can in principle use; but this isn’t really a fair test, as you can’t properly <code>seek</code> through a gzipped file, you have to decompress along the way.  That means the “seeking” approach is really just a streaming approach implemented much less efficiently, and we see that quite clearly:</p>
 
 <p><img src="/assets/io/gzip-seek-vs-stream.png" alt="On gzipped files" /></p>
 
@@ -250,10 +254,10 @@
 
 <p>On linux, as root, you can completely clear caches with the following:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>sync
-<span class="gp">$ </span><span class="nb">echo </span>3 &gt; /proc/sys/vm/drop_caches</code></pre></figure>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>sync
+<span class="gp">$ </span><span class="nb">echo </span>3 &gt; /proc/sys/vm/drop_caches</code></pre></div>
 
-<p>but this is rather overkill, and requires root.  Easier, but requiring more disk space (and a file system which is not too smart/aggressive about deduplication!) is to cycle between multiple copies of the same file.  The <code class="highlighter-rouge">getdata</code> script makes 5 copies each of the compressed and uncompressed est.trunc.fa file to cycle through, which may or may not be enough.</p>
+<p>but this is rather overkill, and requires root.  Easier, but requiring more disk space (and a file system which is not too smart/aggressive about deduplication!) is to cycle between multiple copies of the same file.  The <code>getdata</code> script makes 5 copies each of the compressed and uncompressed est.trunc.fa file to cycle through, which may or may not be enough.</p>
 
 <h2 id="other-file-stores-cluster-file-systems">Other File Stores: Cluster File Systems</h2>
 
@@ -293,7 +297,7 @@
 
 <h3 id="software-turning-off-os-caching">Software: turning off OS caching</h3>
 
-<p>A smaller possible gain could be realized, for small sample fractions, by hinting to the operating system not to provide expensive caching that will not be used by the seek-heavy access pattern.  This can be done by <a href="http://man7.org/linux/man-pages/man2/open.2.html">opening the file with O_DIRECT</a>, or using <a href="https://docs.python.org/dev/library/os.html#os.posix_fadvise">posix_fadvise</a> which allows a more flexible method for hinting to the operating system not to bother prefetching or caching, respectively, by passing <code class="highlighter-rouge">POSIX_FADV_RANDOM </code>and <code class="highlighter-rouge">POSIX_FADV_NOREUSE</code>.  However, this is likely only helpful for very small sample fractions, where seeking is already doing pretty well; for moderate sample fractions, the prefetching can actually help (e.g., that downward trend in time taken at around 10%) so I did not include this in the benchmark.</p>
+<p>A smaller possible gain could be realized, for small sample fractions, by hinting to the operating system not to provide expensive caching that will not be used by the seek-heavy access pattern.  This can be done by <a href="http://man7.org/linux/man-pages/man2/open.2.html">opening the file with O_DIRECT</a>, or using <a href="https://docs.python.org/dev/library/os.html#os.posix_fadvise">posix_fadvise</a> which allows a more flexible method for hinting to the operating system not to bother prefetching or caching, respectively, by passing <code>POSIX_FADV_RANDOM </code>and <code>POSIX_FADV_NOREUSE</code>.  However, this is likely only helpful for very small sample fractions, where seeking is already doing pretty well; for moderate sample fractions, the prefetching can actually help (e.g., that downward trend in time taken at around 10%) so I did not include this in the benchmark.</p>
 
 <h2 id="how-to-further-improve-sequential-results">How to further improve sequential results</h2>
 
@@ -309,7 +313,7 @@ uncommon, and those would benefit the reservoir method here.</p>
 <p>While Python is excellent for many purposes, there is no question but that it is
 slower than compiled languages like C++.  FASTA parsing is quite simple, and
 for very small sampling fractions, there is no good reason that the resevoir solution should be a
-factor of two or more slower than running <code class="highlighter-rouge">wc -l</code>.  This hurts the reservoir
+factor of two or more slower than running <code>wc -l</code>.  This hurts the reservoir
 sampling more than the streaming, as the resevoir approach (which parses records which then
 get bumped later) must parse ~17 times more records in this test than the seeking method.</p>
 
@@ -320,7 +324,7 @@ there may be some modest benefit to turning off <em>caching</em> of the data we
 read in; after all, even with the reservoir sampling, we are still only
 processing each record at most once.  Again, we could use
 <a href="https://docs.python.org/dev/library/os.html#os.posix_fadvise">posix_fadvise</a>,
-this time with only <code class="highlighter-rouge">POSIX_FADV_NOREUSE</code>.  I again expect this to be a
+this time with only <code>POSIX_FADV_NOREUSE</code>.  I again expect this to be a
 relatively small effect, and so it is not tested here.</p>
 
 <h2 id="conclusion-io-is-complicated-but-streaming-is-pretty-fast">Conclusion: I/O is Complicated, But Streaming is Pretty Fast</h2>
@@ -336,6 +340,8 @@ relatively small effect, and so it is not tested here.</p>
 <div class="related">
   <h2>Related Posts</h2>
   <ul class="related-posts">
+    
+     
     
      
       <li>
@@ -354,17 +360,6 @@ relatively small effect, and so it is not tested here.</p>
           <a href="/2015/12/18/kdtree-mapping/">
             Approximate Mapping of Nanopore Squiggle Data with Spatial Indexing
             <small>18 Dec 2015</small>
-          </a>
-        </h3>
-      </li>
-     
-    
-     
-      <li>
-        <h3>
-          <a href="/2015/10/07/nanopolish-v0.4.0/">
-            Nanopolish v0.4.0
-            <small>07 Oct 2015</small>
           </a>
         </h3>
       </li>
