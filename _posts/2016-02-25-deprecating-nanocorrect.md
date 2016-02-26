@@ -2,7 +2,7 @@
 layout: post
 title: Deprecating Nanocorrect
 author: jared
-draft: true
+draft: false
 comments: true
 ---
 
