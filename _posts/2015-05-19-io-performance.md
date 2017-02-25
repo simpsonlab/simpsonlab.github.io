@@ -10,7 +10,7 @@ Last week, [Titus Brown](http://ivory.idyll.org/blog/) asked a question on [twit
 
 This workload is a great case study for looking some of the ins and outs of I/O performance in general, and the tradeoffs between streaming and random file access in particular.  The results can be a little surprising, and the exact numbers will necessarily be file system dependant: but on hard drives (and even more so on most cluster file systems), seeks will perform surprisingly poorly compared to streaming reads (the "Reservoir" approach in the plot below):
 
-![Streaming Reads vs. Seeks](/assets/io/uncompress-seek-vs-stream.png)
+![Streaming Reads vs. Seeks](/assets/io/uncompress-seek-vs-stream.png){:class="img-responsive"}
 
 and here we'll talk about why.
 
@@ -144,7 +144,7 @@ The file handling and parsing will be significantly slower in python than it wou
 
 The primary results are shown in this plot, which we have already seen (note that both x and y scales are logarithmic):
 
-![Streaming Reads vs. Seeks](/assets/io/uncompress-seek-vs-stream.png)
+![Streaming Reads vs. Seeks](/assets/io/uncompress-seek-vs-stream.png){:class="img-responsive"}
 
 Some basic takeaways:
 
@@ -155,7 +155,7 @@ Some basic takeaways:
 
 We also tried the same test on gzipped files directly, since Python's [gzipped file access](https://docs.python.org/2/library/gzip.html) has a seek operation you can in principle use; but this isn't really a fair test, as you can't properly `seek` through a gzipped file, you have to decompress along the way.  That means the "seeking" approach is really just a streaming approach implemented much less efficiently, and we see that quite clearly:
 
-![On gzipped files](/assets/io/gzip-seek-vs-stream.png)
+![On gzipped files](/assets/io/gzip-seek-vs-stream.png){:class="img-responsive"}
 
 It was because the file was truncated that we could use gzip with seek-based sampling here at all; seek-sampling requires knowing the filesize, and the total (uncompressed) file size isn't available with a gzipped file unless the uncompressed size is less than 4GB.  
 
@@ -194,7 +194,7 @@ At those rates, both streaming and seeking workflows see a performance boost, bu
 
 Running this same test on my laptop gives results as shown below:
 
-![SSD: Streaming Reads vs. Seeks](/assets/io/ssd.png)
+![SSD: Streaming Reads vs. Seeks](/assets/io/ssd.png){:class="img-responsive"}
 
 We see that the laptop-grade hardware limits the performance of the streaming read; bandwidths (and thus the performance of the reservoir sampling) are down by about a factor of 2.  On the other hand, we seem to have gained over a factor of 10 in IOPS, with approximately 3000 effective random reading IOPS.  As a result, the seeking for a 0.1% sampling fraction takes a lightning-fast 2.5 seconds.
 

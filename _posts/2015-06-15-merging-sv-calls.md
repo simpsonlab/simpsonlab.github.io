@@ -56,7 +56,7 @@ Performing the same task with structural variants (henceforth SVs) was more comp
 
 Structural variants are generally observed differently than, say, SNVs.  An alignment-based method might align a read to a reference, find that the alignment unambigiously implies a mismatch, and so call an SNV, as in the top panel of the figure below; there is no question about the location of the variant.   (Obviously, to call the variant with any confidence would require multiple reads, not shown in the figure for clarity.)
 
-![Mapping SNVs vs SVs](/assets/sv/mapping-alpha.png)
+![Mapping SNVs vs SVs](/assets/sv/mapping-alpha.png){:class="img-responsive"}
 
 However, a structural variant &ndash; say a translocation, as in the bottom panel of the figure &ndash; will likely be found differently.  In the diagram, paired ends of a read map to two different chromosomes unambigiously, but there is ambiguity as to the location of the two breakpoints on the chromosomes which are now joined to form an new adjacency.   Information from other reads will reduce the uncertainties, even to zero; but in the general case one has to handle ambiguity in location when deciding which calls to merge.
 
@@ -81,7 +81,7 @@ A bigger challenge &ndash; not conceptually, but in terms of bookkeeping and cor
 
 The [VCF Standard](http://samtools.github.io/hts-specs/) describes two ways of describing SVs in a VCF file, of which there are numerous small variations out in the field.  The second, described in somewhat more detail, is breakend notation (usually labelled with an SVTYPE=BND entry in the INFO field of a record).  Before we go into this in much detail, let's look at a figure describing the possibilties:
 
-![VCF Breakpoint meanings](/assets/sv/bkpts-alpha.png)
+![VCF Breakpoint meanings](/assets/sv/bkpts-alpha.png){:class="img-responsive"}
 
 To describe a structural variant, we need more than just two positions, one per breakend.  The breakends aren't just points; they can be thought of as half-intervals, (eg, the piece of Chromosome 1 leading up to position 500; or the piece of Chromsome 1 starting at and continuing from position 500), and we will need that directional information.
 
@@ -101,6 +101,7 @@ In VCF BND notation, for consistency with other entries but perhaps somewhat con
 
 Note that the adjacency can be described equally well from either side; that is, for the purposes of identifying the new adjacency we could just as easily list 1:800 first:
 
+{: .table .table-striped .table-post}
 |   500 first |  800 first |
 |---|---|
 |  `1   500 .   N   N[1:800[` |   `1    800 .   N   ]1:500]N` | 
@@ -125,6 +126,7 @@ convention is to use a "connection" field, CT, to indicate whether the 5' or the
 
 We can then translate between BND notation and translocation calls:
 
+{: .table .table-striped}
 |   BND |  <TRA\> with CT INFO field |
 |---|---|
 |  `1   500 .   N   N[1:800[` |   `1    500 .   N   <TRA>   ... CHR2=1;END=800;CT='3to5'` | 
@@ -143,12 +145,13 @@ callers may call them using BND-style calls, or even <TRA\> calls, they have to 
 
 In the figure below are simple examples of a deletion, an inversion, and a duplication.  
 
-![VCF Breakpoint meanings](/assets/sv/del-inv-alpha.png)
+![VCF Breakpoint meanings](/assets/sv/del-inv-alpha.png){:class="img-responsive"}
 
 The deletion and duplication each generate only one novel adjacency (the 3to5 adjacency between Chr1:10 and Chr1:11 isn't novel!), wheras the inversion generates 2.  
 
 Converting these into BND-style descriptions of the adjacencies follows below. 
 
+{: .table .table-striped}
 |  Symbolic Call | As BND call(s) |
 |---|---|
 |   `1    10 .   N   <DEL>   ... END=20;` | `1	10	.	N	N[1:21[`|

@@ -32,6 +32,7 @@ the pore (for the MinION devices, pore models typically use $$k$$=5 or
 that looks something like this:
 
 
+{: .table .table-striped .table-post}
 | kmer  | mean  |  std dev  |
 | ----- | ----- | --------- |
 | AAAAA | 70.24 | &plusmn; 0.95 pA |
@@ -45,6 +46,7 @@ go from a sequence to an expected set of signal levels from the
 sequencer: so, say, for the 10-base sequence AAAAACGTCC and the
 above 5-mer pore model we&#8217;d expect 6 events (10-5+1) that look like:
 
+{: .table .table-striped .table-post}
 | event  |  kmer | mean     | range (1$$\sigma$$)|
 | ------ | ----- | -------- | ---------------- |
 | *e1* | AAAAA |  70.2 pA |  69.3 -  71.2 pA |
