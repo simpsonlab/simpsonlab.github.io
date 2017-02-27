@@ -12,7 +12,7 @@
   photo: matei.jpg
   info: Research Software Developer, started 2013
   email: matei.david@oicr.on.ca
-  github: github.com/mateidavid
+  github: https://github.com/mateidavid
   twitter: https://twitter.com/mateidvd
   number_educ: 2
   education1: PhD, University of Toronto
@@ -22,7 +22,7 @@
   photo: heather.jpg
   info: Graduate Student, started 2016
   email: heather.gibling@oicr.on.ca
-  github: github.com/hgibling
+  github: https://github.com/hgibling
   twitter: https://twitter.com/hgibling
   number_educ: 2
   education1: MBinf, University of Guelph
@@ -32,7 +32,7 @@
   photo: paul.jpg
   info: Computational Biologist, started 2016
   email: paul.tang@oicr.on.ca
-  github: paulswtang
+  github: https://github.com/paulswtang
   twitter: 0
   number_educ: 1
   education1: BSc, McGill University
