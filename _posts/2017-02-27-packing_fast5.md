@@ -2,8 +2,8 @@
 layout: post
 title: Packing ONT Fast5 Files
 author: matei
-draft: true
-comments: false
+draft: false
+comments: true
 ---
 
 ### Motivation
