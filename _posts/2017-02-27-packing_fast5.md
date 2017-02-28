@@ -14,7 +14,9 @@ The core of ONT sequencing data consists of electrical current level measurement
 
 ### A New Tool
 
-Motivated by these concerns, we introduce a new tool `f5pack` for the purpose packing fast5 files. This tool is part of the [fast5 library](https://github.com/mateidavid/fast5), more specifically, it is distributed with the Python wrapper of this library. Using this tool, we are able to reduce the storage space required by 10,000 ONT fast5 files from the NA12878 dataset **by a factor of ~10**. Here is the detailed log of this packing run:
+Motivated by these concerns, we introduce a new tool `f5pack` for the purpose packing fast5 files. This tool is part of the [fast5 library](https://github.com/mateidavid/fast5), more specifically, it is distributed with the Python wrapper of this library. Support for packing is built into the library itself, so any tools that rely on (the updated version of) this library for interacting with fast5 files (e.g. [Nanopolish](https://github.com/jts/nanopolish)) will be able to use packed files transparently.
+
+Using this tool, **we are able to reduce the storage space required by** 10,000 **fast5 files** from the NA12878 dataset **by a factor of ~10**. Here is the detailed log of this packing run:
 
 ```
 bp_seq_count           92857415                   # number of bases sequenced
@@ -40,7 +42,7 @@ rs_frac_called         0.96
 bp_per_sec             155.43                     # average sequencing speed
 input_bytes            31950088342                # size of input
 output_bytes           3361740258                 # size of output
-output_overhead_bytes  348010270                  # size of output minus size of encodings accounted for above
+output_overhead_bytes  348010270                  # size of output, minus bits accounted for above
 ```
 
 In order to understand how `f5pack` works, and to explain some of the fields above, we need to talk about the specific types of data found in fast5 files.
@@ -68,7 +70,7 @@ Conceptually, there are 3 main types of data stored in fast5 files:
   - `start` is encoded as `skip`, a difference from previous event end. `skip` is usually 0, but not always, with non-0 values corresponding to instances where the event detection process decided to skip 1 or more raw samples for various reasons (e.g., perhaps they were too error-prone to decode). On this dataset we achieve 1.00 bits per event (see `ed_skip_bits` above).
   - `length` is encoded using a Huffman code based on a predetermined distribution of values, computed from several training files. On this dataset we achieve 7.18 bits per event (see `ed_len_bits` above).
   - `mean` and `stdv` are not encoded at all. Instead, `f5pack` requires the existence of raw samples (packed or not) to pack event-level data, and it recomputes `mean` and `stdv` as part of the unpacking process.
-  - When both pre- and post-basecall events are present, for each post-basecall event we also encode `rel_skip`, the relative skip in post-basecall events with respect to the pre-basecall event indices. This value is 0 if no pre-basecall events are skipped, but it can be non-0 as well. On this dataset we achieve 5.72 bits per event (see `ev_rel_skip_bits` above).
+  - When both pre- and post-basecall events are present, for each post-basecall event we also encode `rel_skip`, the relative skip in post-basecall events with respect to the pre-basecall event indexes. This value is 0 if no pre-basecall events are skipped, but it can be non-0 as well. On this dataset we achieve 5.72 bits per event (see `ev_rel_skip_bits` above).
   - `move` is encoded using a Huffman code based on a predetermined distribution of values, computed from several training files. On this dataset we achieve 1.26 bits per event (see `ev_move_bits` above).
   - `state` is not encoded at all. Instead, `f5pack` requires the existence of base-level data (packed or not) to pack event-level data, and it recomputes `state` using `move` as part of the unpacking process.
   - `p_model_state` is a probability, and `f5pack` exposes an option as to how many bits of precision to encode from it, defaulting to 2 bits (see `ev_p_model_state_bits` above).
@@ -121,6 +123,12 @@ f5pack --unpack --output uploaded.new.dir/ archive.dir/
 
 # drop everything other than fastq entries
 f5pack --fastq --output fq-only.dir/ input.dir/
+
+# show exactly what is being packed and what is being dropped from a given file
+# in terms of internal fast5 paths
+f5pack --pack --output pack.dir/ input.dir/file.fast5
+f5pack --unpack --output unpack.dir/ pack.dir/file.fast5
+diff <(h5dump -n 1 input.dir/file.fast5) <(h5dump -n 1 unpack.dir/file.fast5)
 ```
 
 ### Limitations and Quirks
@@ -130,4 +138,8 @@ There are several different existing ONT basecallers: Metrichor, MinKNOW (local)
 However, current versions of MinKNOW and Albacore both contain a show-stopper issue from the point of view of `f5pack`, in that they do not store enough bits to allow the unambiguous reconstruction of a raw samples index from the event `start` field. We reported this issue to ONT, but pending a design change, **Metrichor is the only basecaller for which we support packing event-level data**. Raw samples and base-level data are not affected by this problem. Currently, when `f5pack` encounters (during a packing run) event-level data written by a basecaller other than Metrichor, it ignores this data (i.e., it `drop`s it), emits a warning, and continues.
 
 Moreover, the current version of Metrichor contains a known (by ONT) bug in the post-basecall events `move` field: sometimes the value stored in fast5 files is wrong. `f5pack` currently works around this issue by trusting the fastq entry and the `state` field more than the `move` field. When the `move` value is detected to be wrong, `f5pack` corrects this value if possible, emits a warning, and continues. If no reasonable correction is available, the packing of that file is considered to have failed.
+
+### Disclaimer
+
+This software is experimental, and it is distributed under the [MIT License](https://github.com/mateidavid/fast5/blob/master/LICENSE). The fast5 format is a moving target. We've tried to ensure that `f5pack` is fault tolerant and safe to use, but please note that you use this software at your own risk.
 
