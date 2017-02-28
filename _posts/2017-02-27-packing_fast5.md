@@ -14,7 +14,7 @@ The core of ONT sequencing data consists of electrical current level measurement
 
 ### A New Tool
 
-Motivated by these concerns, we introduce a new tool `f5pack` for the purpose packing fast5 files. This tool is part of the [fast5 library](https://github.com/mateidavid/fast5), more specifically, it is distributed with the Python wrapper of this library. Support for packing is built into the library itself, so any tools that rely on (the updated version of) this library for interacting with fast5 files (e.g. [Nanopolish](https://github.com/jts/nanopolish)) will be able to use packed files transparently.
+Motivated by these concerns, we introduce a new tool `f5pack` for the purpose packing fast5 files. This tool is part of the [fast5 library](https://github.com/mateidavid/fast5), more specifically, it is distributed with the Python wrapper of this library. Support for packing is built into the library itself, so any tools that rely on (the updated version of) this library for interacting with fast5 files (e.g. [Nanopolish](https://github.com/jts/nanopolish)) will be able to use packed files transparently, i.e., without explicitly unpacking them.
 
 Using this tool, **we are able to reduce the storage space required by** 10,000 **fast5 files** from the NA12878 dataset **by a factor of ~10**. Here is the detailed log of this packing run:
 
@@ -55,6 +55,8 @@ Conceptually, there are 3 main types of data stored in fast5 files:
 
   To pack raw samples data, we use the observation that raw samples change rather slowly during sequencing. As such, we compute differences between consecutive raw samples (in integral space), and we encode these differences using a Huffman code based on the predetermined distribution of values, computed from several training files. On this dataset, we achieve a packing rate of 6.58 bits per raw sample (see `rs_bits` above).
 
+  The packing of raw samples data is **lossless**.
+
 - **Event-level data** aggregates raw samples data into *events*, each of which ideally corresponds to a specific DNA context found in the pore. To understand this, first observe that DNA is threaded through the sequencing pore using a biological process at a stochastic rate. Since raw samples are measured at a fixed rate, the number of raw samples corresponding to a specific DNA context is a stochastic quantity. The process of *event detection* takes as input the sequence of raw samples, and it produces a sequence of events. Ideally, each event corresponds to exactly one DNA context, but the process is noisy, so some DNA contexts can correspond to either 0 events (i.e., they are missed) or 2 or more events (i.e., they are over-separated). Fast5 files might contain both *pre-basecall* and *post-basecall* event data.
 
   Pre-basecall events, found at internal fast5 paths such as `/Analyses/EventDetection_000/Reads/Read_291/Events`, contain the following fields:
@@ -64,7 +66,8 @@ Conceptually, there are 3 main types of data stored in fast5 files:
   Post-basecall events, found at internal fast5 paths such as `/Analyses/Basecall_1D_000/BaseCalled_template/Events`, contain all the data in pre-basecall events, plus annotations made by the basecalling process such as:
   - `move`: the number of bases that have changed from the DNA context in the previous event,
   - `state`: the DNA context the event corresponds to,
-  - `p_model_state`: the probability that `state` is correct.
+  - `p_model_state`: the probability that `state` is correct,
+  - `mp_state` and others: post-basecall events contain a few other fields which we currently do not pack.
 
   In `f5pack`, we encode event-level data as follows:
   - `start` is encoded as `skip`, a difference from previous event end. `skip` is usually 0, but not always, with non-0 values corresponding to instances where the event detection process decided to skip 1 or more raw samples for various reasons (e.g., perhaps they were too error-prone to decode). On this dataset we achieve 1.00 bits per event (see `ed_skip_bits` above).
@@ -77,12 +80,16 @@ Conceptually, there are 3 main types of data stored in fast5 files:
 
   In addition to event tables, event-level data also includes 2D alignment data in the case that the sequencing and basecalling are operating in 2D mode. The dataset above is 1D only.
 
+  The packing of event-level data is **lossy**: there are certain post-basecalling events fields we do not pack, as well as hairpin detection data that we ignore.
+
 - **Base-level data** is produced by the basecalling process, and it consists of [fastq](https://en.wikipedia.org/wiki/FASTQ_format) entries. For each base pair, the fastq format stores the base itself, and a quality value. We encode these as follows:
 
   - The bases are encoded using a Huffman code in which we allow for non-ACGT bases. On this dataset, we achieve 2.30 bits per base (see `fq_bp_bits` above).
   - For the base quality value, `f5pack` imposes an upper limit of 31 on the quality value, and it exposes an option as to how many (most significant) bits of precision to encode from it, defaulting to all 5 bits (see `fq_qv_bits` above).
 
-- In addition to these main types of data, fast5 files also contain **configuration data** for various pipelines that the file is run through, as well as **summary data** for the results of these pipelines. Currently, `f5pack` does not save either configuration or summary data, though that could be added as an option if interest arises.
+  The packing of base-level data is **lossless**, except for the fact that quality values higher than 31 are replaced by 31.
+
+- **Configuration data** and **Summary data**: In addition to the main types of data above, fast5 files also contain configuration data for various pipelines that the file is run through, as well as summary data for the results of these pipelines. Currently, `f5pack` does not save either configuration or summary data, though that could be added as an option if interest arises.
 
 ### Future Directions
 
@@ -133,11 +140,15 @@ diff <(h5dump -n 1 input.dir/file.fast5) <(h5dump -n 1 unpack.dir/file.fast5)
 
 ### Limitations and Quirks
 
-There are several different existing ONT basecallers: Metrichor, MinKNOW (local), Albacore, Nanonet, and possibly others. Unfortunately, the format for event-level data is not standardized, and as such they each encode it in slightly different ways. We used the first 3, and Metrichor is the only one that produces both pre- and post-basecalling event data, while MinKNOW and Albacore produce only post-basecalling event data. In principle, `f5pack` is designed to work with both pre-and-post and post-only event-level data.
+There are several different existing basecallers for ONT data: (the one provided by the distinct company called) Metrichor, MinKNOW (local), Albacore, Nanonet, and possibly others. Unfortunately, the format for event-level data is not standardized, and as such they each encode it in slightly different ways. We used the first 3, and Metrichor is the only one that produces both pre- and post-basecalling event data, while MinKNOW and Albacore produce only post-basecalling event data. In principle, `f5pack` is designed to work with both pre-and-post and post-only event-level data. However, see below.
 
-However, current versions of MinKNOW and Albacore both contain a show-stopper issue from the point of view of `f5pack`, in that they do not store enough bits to allow the unambiguous reconstruction of a raw samples index from the event `start` field. We reported this issue to ONT, but pending a design change, **Metrichor is the only basecaller for which we support packing event-level data**. Raw samples and base-level data are not affected by this problem. Currently, when `f5pack` encounters (during a packing run) event-level data written by a basecaller other than Metrichor, it ignores this data (i.e., it `drop`s it), emits a warning, and continues.
+Here is a list of issues and bugs that `f5pack` attempts to work around:
 
-Moreover, the current version of Metrichor contains a known (by ONT) bug in the post-basecall events `move` field: sometimes the value stored in fast5 files is wrong. `f5pack` currently works around this issue by trusting the fastq entry and the `state` field more than the `move` field. When the `move` value is detected to be wrong, `f5pack` corrects this value if possible, emits a warning, and continues. If no reasonable correction is available, the packing of that file is considered to have failed.
+- Current versions of MinKNOW and Albacore both contain a show-stopper issue from the point of view of `f5pack`, in that they do not store enough bits to allow the unambiguous reconstruction of a raw samples index from the event `start` field. We reported this issue to ONT, but pending a design change, **Metrichor is the only basecaller for which we support packing event-level data**. Raw samples and base-level data are not affected by this problem. When `f5pack` encounters (during a packing run) event-level data written by a basecaller other than Metrichor, it ignores this data (i.e., it `drop`-s it), emits a warning, and continues.
+
+- The current version of Metrichor contains a known bug related to the `stdv` field of both pre- and post-basecall events. In pre-basecall events, the bug consists of `stdv` being a small-non-0 value when it should be exactly-0. In post-basecall events, this difference is magnified by the fact that exactly-0 `stdv` fields are replaced by a more plausible read-dependent constant value, but small-non-0 values are left intact. `f5pack` works around this issue by assuming small-non-0 `stdv` values are buggy, it corrects them to behave as exactly-0 values, emits a warning, and continues.
+
+- The current version of some basecallers contains a known bug in the post-basecall events `move` field: sometimes the value stored in fast5 files is wrong. `f5pack` currently works around this issue by trusting the fastq entry and the `state` field more than the `move` field. When the `move` value is detected to be wrong, `f5pack` corrects this value if possible, emits a warning, and continues. If no reasonable correction is available, the packing of that file is considered to have failed.
 
 ### Disclaimer
 
