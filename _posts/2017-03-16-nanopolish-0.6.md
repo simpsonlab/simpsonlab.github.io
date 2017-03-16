@@ -2,7 +2,7 @@
 layout: post
 title: Nanopolish 0.6
 author: jared
-draft: true
+draft: false
 comments: true
 ---
 
