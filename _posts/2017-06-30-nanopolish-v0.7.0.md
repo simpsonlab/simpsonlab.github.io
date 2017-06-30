@@ -23,4 +23,4 @@ The results of this new method are fairly dramatic on my benchmarking data set (
 |  v0.7.0           |          99.95%  |               574    |
 |  v0.7.0 --faster  |          99.95%  |               424    |
 
-With default parameters 0.7.0 is 7.5x faster than the last version on this assembly. With the `--faster` flag, it is over 10x faster. We have other optimizations planned so I hope we can reduce this even further - more hopefully soon.
+With default parameters 0.7.0 is 7.5x faster than the previous version on this assembly. With the `--faster` flag, it is over 10x faster. We have other optimizations planned so I hope we can reduce this even further - more hopefully soon.
