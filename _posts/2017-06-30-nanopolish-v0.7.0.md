@@ -16,6 +16,7 @@ The new scoring algorithm uses a threshold of `t = 100` by default. For the less
 
 The results of this new method are fairly dramatic on my benchmarking data set (E. coli R9.4 data at 300x depth:
 
+{: .table .table-striped .table-post}
 | Version           | Percent Identity | Runtime (CPU hours)  |
 | ----------------- | ---------------- | -------------------  |
 |  v0.6.3           |          99.95%  |              4323    |
