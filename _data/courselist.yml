@@ -1,0 +1,22 @@
+- title: "Algorithms for Genome Sequence Analysis"
+  term: 2016 Fall
+  type: course
+  link:
+    url: https://jts.github.io/csc2417/
+    display: "CSC 2417"
+
+- title: "Informatics on High-throughput Sequencing Data"
+  term: 2014-2017
+  type: cbw
+  link:
+    url: https://bioinformatics.ca/workshops
+    display: "CBW"
+
+- title: "Bioinformatics for Cancer Genomics"
+  term: 2013-2017 
+  type: cbw
+  link:
+    url: https://bioinformatics.ca/workshops
+    display: "CBW"
+
+

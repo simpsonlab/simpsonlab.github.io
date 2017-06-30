@@ -18,6 +18,7 @@ SQK006 also brings an increase in speed - from 30bp/s (SQK005) to 70bp/s (SQK006
 
 We were quite curious to see how well the new data performs in practice. Nick and Josh made four runs with SQK006 kits - two of native E. coli DNA and two of PCR-treated E. coli DNA to remove DNA damage, base modifications and other artefacts. I downloaded one of the native runs and one of the PCR-treated runs and used it to make a new consensus sequence for the draft assembly in our [paper](http://www.nature.com/nmeth/journal/v12/n8/full/nmeth.3444.html). As before we use dnadiff from [mummer](http://mummer.sourceforge.net/) to calculate percent identity, the number of SNPs and the number of indels with respect to the E. coli K12 reference genome. 
 
+{: .table .table-striped .table-post}
 | Kit, Coverage     | Percent Identity | # SNPs   | # Indels  |
 | ----------------- | ---------------- | ------   | --------  |
 |  SQK005, 29X      |          99.48%  | 1,343    | 22,601    |

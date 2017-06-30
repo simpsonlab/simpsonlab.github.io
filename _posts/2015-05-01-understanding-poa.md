@@ -119,7 +119,7 @@ A familiar diagram follows below; of those three possible moves, we take the
 running scores from each of those previous positions, add the score
 corresponding to the move, and set the score of the current position.
 
-![Dynamic programming for string-string alignment](/assets/poa/sw-dynamicprogramming.png "Dynamic programming for string-string alignment" )
+![Dynamic programming for string-string alignment](/assets/poa/sw-dynamicprogramming.png "Dynamic programming for string-string alignment" ){:class="img-responsive"}
 
 We can calculate the scores for pairs of positions in any order we like
 &ndash; along rows of the matrix, columns, or minor diagonals &ndash;
@@ -128,7 +128,7 @@ positions we need have already been calculated.
 
 ### String to Graph Alignment
 
-![Dynamic programming for graph-string alignment](/assets/poa/poa-dynamicprogramming.png "Dynamic programming for graph-string alignment")
+![Dynamic programming for graph-string alignment](/assets/poa/poa-dynamicprogramming.png "Dynamic programming for graph-string alignment"){:class="img-responsive"}
 
 Aligning a sequence to a DAG introduces suprisingly little complexity to the
 dynamic programming problem; the clever diagram in the POA paper with a dynamic

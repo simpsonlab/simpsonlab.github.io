@@ -24,6 +24,7 @@ This is a simulation from an idealized nanopore sequencing process. The black do
 
 The event detection software writes the events to an HDF5 file. The raw kHz samples are typically not stored as the output files would be impractically large. Here's the table of events for this simulation:
 
+{: .table .table-striped .table-post}
 | event index  | mean (pA) | length (s) |
 | :----------: | :-------: | :--------: |
 |            1 |      60.3 |      0.521 |
@@ -36,6 +37,7 @@ The event detection software writes the events to an HDF5 file. The raw kHz samp
 
 To help translate events into a DNA sequence, Oxford Nanopore provides a _pore model_ which describes the expected current signal for each 5-mer. The pore model is a set of 1024 normal distributions - an example might look like this:
 
+{: .table .table-striped .table-post}
 | 5-mer  | $$\mu_k$$ | $$\sigma_k$$ |
 | :----: | :-------: | :----------: |
 | AAAAA  | 53.5      | 1.3          |
