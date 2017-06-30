@@ -14,7 +14,7 @@ Nanopolish calculates an improved consensus sequence for a draft genome assembly
 
 The new scoring algorithm uses a threshold of `t = 100` by default. For the less patient users there is a more aggressive option (`--faster`, which sets `t=25`) but I want to test this further before making it the default.
 
-The results of this new method are fairly dramatic on my benchmarking data set (E. coli R9.4 data at 300x depth:
+The results of this new method are fairly dramatic on my benchmarking data set (E. coli R9.4 data at 300x depth):
 
 {: .table .table-striped .table-post}
 | Version           | Percent Identity | Runtime (CPU hours)  |
