@@ -22,5 +22,8 @@ The results of this new method are fairly dramatic on my benchmarking data set (
 |  v0.6.3           |          99.95%  |              4323    |
 |  v0.7.0           |          99.95%  |               574    |
 |  v0.7.0 --faster  |          99.95%  |               424    |
+|  v0.7.1 --faster  |          99.96%  |                91    |
 
 With default parameters 0.7.0 is 7.5x faster than the previous version on this assembly. With the `--faster` flag, it is over 10x faster. We have other optimizations planned so I hope we can reduce runtime even further - more hopefully soon.
+
+**Update July 05**: We've made two more improvements in nanopolish 0.7.1 to drop runtime on E. coli down to 91 CPU hours. The first change reduces the length of the event sequence and reference region that are input into the HMM during candidate variant screening. The second change stops trying to improve the consensus when the variant set converges rather than iterating for a fixed number of rounds. 
