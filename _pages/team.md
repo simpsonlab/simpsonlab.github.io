@@ -72,11 +72,21 @@ permalink: /team/
     <th>Staff</th>
 </tr>
   <tr>
+    <td>Matei David, 2013-2017</td>
+  </tr>
+  <tr>
     <td>Jonathan Dursi, 2015-2016</td>
   </tr>
   <tr>
     <td>Marina Barsky, 2013-2015</td>
   </tr>
+<tr>
+    <th>Undergraduate Students</th>
+</tr>
+  <tr>
+    <td>Tom Piao, 2016</td>
+  </tr>
+
 </table>
 
 <br />

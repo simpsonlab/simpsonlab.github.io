@@ -7,16 +7,6 @@
   number_educ: 2
   education1: PhD, University of Cambridge
   education2: BSc, University of British Columbia
-  
-- name: Matei David
-  photo: matei.jpg
-  info: Research Software Developer, started 2013
-  email: matei.david@oicr.on.ca
-  github: https://github.com/mateidavid
-  twitter: https://twitter.com/mateidvd
-  number_educ: 2
-  education1: PhD, University of Toronto
-  education2: BSc, University of Toronto
 
 - name: Heather Gibling
   photo: heather.jpg
@@ -33,6 +23,25 @@
   info: Computational Biologist, started 2016
   email: paul.tang@oicr.on.ca
   github: https://github.com/paulswtang
+  twitter: 0
+  number_educ: 1
+  education1: BSc, McGill University
+
+- name: Hamza Khan
+  photo: hamza.jpg
+  info: Computational Biologist, started 2017
+  email: hamza.khan@oicr.on.ca
+  github: https://github.com/hamzakhanvit
+  twitter: 0
+  number_educ: 2
+  education1: MSc, University of British Columbia
+  education2: BTech, VIT University, India
+
+- name: Joanna Pineda
+  photo: joanna.jpg
+  info: Computational Biologist, started 2017
+  email: joanna.pineda@oicr.on.ca
+  github: https://github.com/jopineda
   twitter: 0
   number_educ: 1
   education1: BSc, McGill University
