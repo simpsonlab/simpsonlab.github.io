@@ -2,7 +2,7 @@
 layout: post
 title: New release, with experimental methylation aware polishing
 author: jared
-draft: true
+draft: false
 comments: true
 ---
 
