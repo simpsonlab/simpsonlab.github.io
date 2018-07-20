@@ -66,6 +66,14 @@ permalink: /team/
 </div>
 {% endif %}
 
+## Visitors
+
+<table align="center" class="table table-condensed">
+<tr>
+    <td>Kiran Garimella (University of Oxford) 2018</td>
+</tr>
+</table>
+
 ## Alumni
 <table align="center" class="table table-condensed">
 <tr>
