@@ -45,3 +45,23 @@
   twitter: 0
   number_educ: 1
   education1: BSc, McGill University
+
+- name: Alister D'Costa
+  photo: alister.jpg
+  info: Graduate Student, started 2017
+  email: alister.d'costa@oicr.on.ca
+  github: 0
+  twitter: 0
+  number_educ: 1
+  education1: BSc, University of Waterloo
+
+- name: Michael Molnar
+  photo: missing.jpg
+  info: Scientific Associate, started 2017
+  email: michael.molnar@oicr.on.ca
+  github: https://github.com/mmolnar2
+  twitter: 0
+  number_educ: 2
+  education1: BSc, University of Western Ontario
+  education2: PhD, University of Western Ontario
+
