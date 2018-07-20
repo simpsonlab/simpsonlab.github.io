@@ -86,6 +86,8 @@ permalink: /team/
   <tr>
     <td>Tom Piao, 2016</td>
   </tr>
+  <tr><td>Yin Yin, 2017</td></tr>
+  <tr><td>Audrina Zhou, 2017</td></tr>
 
 </table>
 
