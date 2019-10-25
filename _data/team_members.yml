@@ -29,7 +29,7 @@
 
 - name: Joanna Pineda
   photo: joanna.jpg
-  info: Computational Biologist, started 2017
+  info: Graduate Student, started 2017
   email: joanna.pineda@oicr.on.ca
   github: https://github.com/jopineda
   twitter: 0
@@ -59,8 +59,10 @@
   photo: ina.png
   info: Schmidt Science Fellow, started 2019
   email: ina.anreiter@oicr.on.ca
+  github: https://github.com/I-Anreiter
   twitter: https://twitter.com/inanreiter
-  number_educ: 2
-  education1: MSc, Universidade Nova de Lisboa
-  education2: BSc, Universidade Técnica de Lisboa
+  number_educ: 3
+  education1: PhD, University of Toronto
+  education2: MSc, Universidade Nova de Lisboa
+  education3: BSc, Universidade Técnica de Lisboa
 
