@@ -27,16 +27,6 @@
   number_educ: 1
   education1: BSc, McGill University
 
-- name: Hamza Khan
-  photo: hamza.jpg
-  info: Computational Biologist, started 2017
-  email: hamza.khan@oicr.on.ca
-  github: https://github.com/hamzakhanvit
-  twitter: 0
-  number_educ: 2
-  education1: MSc, University of British Columbia
-  education2: BTech, VIT University, India
-
 - name: Joanna Pineda
   photo: joanna.jpg
   info: Computational Biologist, started 2017
@@ -64,4 +54,13 @@
   number_educ: 2
   education1: PhD, University of Western Ontario
   education2: BSc, University of Western Ontario
+
+- name: Ina Anreiter
+  photo: ina.png
+  info: Schmidt Science Fellow, started 2019
+  email: ina.anreiter@oicr.on.ca
+  twitter: https://twitter.com/inanreiter
+  number_educ: 2
+  education1: MSc, Universidade Nova de Lisboa
+  education2: BSc, Universidade Técnica de Lisboa
 
