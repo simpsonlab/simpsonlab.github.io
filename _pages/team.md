@@ -81,13 +81,19 @@ permalink: /team/
 <tr>
     <th>Staff</th>
 </tr>
+  <tr> <td>Paul Tang, 2016-2020</td> </tr>
   <tr> <td>Hamza Khan, 2017-2019</td> </tr>
   <tr> <td>Jonathan Dursi, 2015-2016</td> </tr>
   <tr> <td>Matei David, 2013-2017</td> </tr>
   <tr> <td>Marina Barsky, 2013-2015</td> </tr>
 <tr>
+    <th>Graduate Students</th>
+</tr>
+  <tr><td>Joanna Pineda, MSc, 2017-2020</td></tr>
+<tr>
     <th>Undergraduate Students</th>
 </tr>
+  <tr><td>Bianca Pokhrel, 2019</td></tr>
   <tr><td>Tina Lee, 2018</td></tr>
   <tr><td>Yin Yin, 2017</td></tr>
   <tr><td>Audrina Zhou, 2017</td></tr>
