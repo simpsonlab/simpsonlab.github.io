@@ -93,6 +93,7 @@ permalink: /team/
 <tr>
     <th>Undergraduate Students</th>
 </tr>
+  <tr><td>Bianca Pokhrel, 2019</td></tr>
   <tr><td>Tina Lee, 2018</td></tr>
   <tr><td>Yin Yin, 2017</td></tr>
   <tr><td>Audrina Zhou, 2017</td></tr>
