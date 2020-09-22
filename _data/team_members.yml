@@ -18,24 +18,6 @@
   education1: MBinf, University of Guelph
   education2: BSc, University of Calgary
 
-- name: Paul Tang
-  photo: paul.jpg
-  info: Computational Biologist, started 2016
-  email: paul.tang@oicr.on.ca
-  github: https://github.com/paultsw
-  twitter: 0
-  number_educ: 1
-  education1: BSc, McGill University
-
-- name: Joanna Pineda
-  photo: joanna.jpg
-  info: Graduate Student, started 2017
-  email: joanna.pineda@oicr.on.ca
-  github: https://github.com/jopineda
-  twitter: 0
-  number_educ: 1
-  education1: BSc, McGill University
-
 - name: Alister D'Costa
   photo: alister.jpg
   info: Graduate Student, started 2017
@@ -67,3 +49,21 @@
   education2: MSc, Universidade Nova de Lisboa
   education3: BSc, Universidade Técnica de Lisboa
 
+- name: Richard de Borja
+  photo: richard.png
+  info: Computational Biologist
+  email: richard.deborja@oicr.on.ca
+  github: https://github.com/rdeborja
+  twitter: htttps://twitter.com/rdeborja
+  number_educ: 1
+  education1: BaSc, University of Toronto
+
+- name: Sabiq Chaudhary
+  photo: sabiq.png
+  info: Computational Biologist
+  email: Sabiq.Chaudhary@oicr.on.ca
+  github: https://github.com/sabiqali
+  twitter: 0
+  number_educ: 2
+  education1: MEng, University of Toronto
+  education2: BTech, SRM Institute of Science and Technology
