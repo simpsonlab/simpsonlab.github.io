@@ -51,7 +51,7 @@
 
 - name: Richard de Borja
   photo: richard.png
-  info: Computational Biologist
+  info: Computational Biologist, started 2020
   email: richard.deborja@oicr.on.ca
   github: https://github.com/rdeborja
   twitter: htttps://twitter.com/rdeborja
@@ -60,10 +60,18 @@
 
 - name: Sabiq Chaudhary
   photo: sabiq.png
-  info: Computational Biologist
+  info: Computational Biologist, started 2020
   email: Sabiq.Chaudhary@oicr.on.ca
   github: https://github.com/sabiqali
   twitter: 0
   number_educ: 2
   education1: MEng, University of Toronto
   education2: BTech, SRM Institute of Science and Technology
+
+- name: Jonathan Broadbent
+  info: Graduate Student, started 2021
+  email: jonathan.broadbent@oicr.on.ca
+  github: https://github.com/Jonbroad15
+  twitter: 0
+  number_educ: 1
+  education1: BSc, McGill Univeristy
