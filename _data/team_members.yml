@@ -78,16 +78,16 @@
   education1: BSc, McGill Univeristy
 
 - name: Yasamin Nouri Jelyani
-  photo: PersonGrey.png
-  info: Undergraduate Student, BCB Project, 2022
+  photo: missing.jpg
+  info: Undergraduate Student, 2022
   number_educ: 1
   education1: BSc, University of Toronto (in progress)
 
 - name: Kevin Gao
-  photo: PersonGrey.png
-  info: Undergraudate Student, BCB Project, 2022
+  photo: kevingao.jpg
+  info: Undergraudate Student, Bioinformatics and Computational Biology, 2022
   number_educ: 1
-  education1: BSc, University of Toronto (in progress)
+  education1: BSc, Computer Science (minor in Mathematics), University of Toronto (in progress)
 
 - name: Ella
   photo: ella.png
