@@ -81,14 +81,19 @@ permalink: /team/
 <tr>
     <th>Staff</th>
 </tr>
-  <tr> <td>Paul Tang, 2016-2020</td> </tr>
-  <tr> <td>Hamza Khan, 2017-2019</td> </tr>
-  <tr> <td>Jonathan Dursi, 2015-2016</td> </tr>
-  <tr> <td>Matei David, 2013-2017</td> </tr>
-  <tr> <td>Marina Barsky, 2013-2015</td> </tr>
+  <tr><td>Sabiq Chaudhary, 2020-2023</td></tr>
+  <tr><td>Richard de Borja, 2020-2023</td></tr>
+  <tr><td>Michael Molnar, 2018-2022</td></tr>
+  <tr><td>Paul Tang, 2016-2020</td></tr>
+  <tr><td>Hamza Khan, 2017-2019</td></tr>
+  <tr><td>Jonathan Dursi, 2015-2016</td></tr>
+  <tr><td>Matei David, 2013-2017</td></tr>
+  <tr><td>Marina Barsky, 2013-2015</td></tr>
 <tr>
     <th>Graduate Students</th>
 </tr>
+  <tr><td>Jonathan Broadbent, MSc, 2021-2023</td></tr>
+  <tr><td>Heather Gibling, PhD, 2016-2022</td></tr>
   <tr><td>Joanna Pineda, MSc, 2017-2020</td></tr>
 <tr>
     <th>Undergraduate Students</th>

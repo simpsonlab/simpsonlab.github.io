@@ -8,16 +8,6 @@
   education1: PhD, University of Cambridge
   education2: BSc, University of British Columbia
 
-- name: Heather Gibling
-  photo: heather.jpg
-  info: Graduate Student, started 2016
-  email: heather.gibling@oicr.on.ca
-  github: https://github.com/hgibling
-  twitter: https://twitter.com/hgibling
-  number_educ: 2
-  education1: MBinf, University of Guelph
-  education2: BSc, University of Calgary
-
 - name: Alister D'Costa
   photo: alister.jpg
   info: Graduate Student, started 2017
@@ -27,16 +17,6 @@
   number_educ: 2
   education1: MSc, University of Toronto
   education2: BSc, University of Waterloo
-
-- name: Michael Molnar
-  photo: mike.jpg
-  info: Scientific Associate, started 2018
-  email: michael.molnar@oicr.on.ca
-  github: https://github.com/mmolnar2
-  twitter: 0
-  number_educ: 2
-  education1: PhD, University of Western Ontario
-  education2: BSc, University of Western Ontario
 
 - name: Ina Anreiter
   photo: ina.png
@@ -48,34 +28,6 @@
   education1: PhD, University of Toronto
   education2: MSc, Universidade Nova de Lisboa
   education3: BSc, Universidade Técnica de Lisboa
-
-- name: Richard de Borja
-  photo: richard.png
-  info: Computational Biologist, started 2020
-  email: richard.deborja@oicr.on.ca
-  github: https://github.com/rdeborja
-  twitter: https://twitter.com/rdeborja
-  number_educ: 1
-  education1: BASc, University of Toronto
-
-- name: Sabiq Chaudhary
-  photo: sabiq.png
-  info: Computational Biologist, started 2020
-  email: Sabiq.Chaudhary@oicr.on.ca
-  github: https://github.com/sabiqali
-  twitter: 0
-  number_educ: 2
-  education1: MEng, University of Toronto
-  education2: BTech, SRM Institute of Science and Technology
-
-- name: Jonathan Broadbent
-  photo: jonathan.jpg
-  info: Graduate Student, started 2021
-  email: jonathan.broadbent@oicr.on.ca
-  github: https://github.com/Jonbroad15
-  twitter: 0
-  number_educ: 1
-  education1: BSc, McGill Univeristy
 
 - name: Yasamin Nouri Jelyani
   photo: yasamin.jpg
