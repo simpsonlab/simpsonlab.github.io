@@ -1,7 +1,7 @@
 - name: Jared Simpson
   photo: jared.png
   info: Principal Investigator, started 2013
-  github: https://github.com/jts
+  github: github.com/jts
   twitter: https://twitter.com/jaredtsimpson
   number_educ: 2
   education1: PhD, University of Cambridge
@@ -24,6 +24,14 @@
   number_educ: 2
   education1: PhD, University of Toronto
   education2: BSc
+
+- name: Yiyang Hou
+  photo: yiyang.jpg
+  info: Graduate Student
+  github: https://github.com/simpsonlab
+  twitter: 0
+  number_educ: 1
+  education1: BSc, University of Toronto
 
 - name: Ella
   photo: ella.png

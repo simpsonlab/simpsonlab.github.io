@@ -68,13 +68,6 @@ permalink: /team/
 </div>
 {% endif %}
 
-## Visitors
-
-<table align="center" class="table table-condensed">
-<tr>
-    <td>Kiran Garimella (University of Oxford) 2018</td>
-</tr>
-</table>
 
 ## Alumni
 <table align="center" class="table table-condensed">
@@ -109,6 +102,14 @@ permalink: /team/
   <tr><td>Audrina Zhou, 2017</td></tr>
   <tr><td>Tom Piao, 2016</td></tr>
 
+</table>
+
+## Visitors
+
+<table align="center" class="table table-condensed">
+<tr>
+    <td>Kiran Garimella (University of Oxford) 2018</td>
+</tr>
 </table>
 
 <br />
