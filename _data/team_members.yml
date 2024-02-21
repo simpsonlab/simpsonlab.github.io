@@ -1,7 +1,6 @@
 - name: Jared Simpson
   photo: jared.png
   info: Principal Investigator, started 2013
-  email: jsimpson@oicr.on.ca
   github: https://github.com/jts
   twitter: https://twitter.com/jaredtsimpson
   number_educ: 2
@@ -11,11 +10,19 @@
 - name: Phil Zuzarte
   photo: phil.jpg
   info: Scientific Associate
-  email: pzuzarte@oicr.on.ca
   github: https://github.com/simpsonlab
   twitter: 0
   number_educ: 2
   education1: PhD
+  education2: BSc
+
+- name: Dustin Sokolowski
+  photo: dustin.jpg
+  info: Post-doc
+  github: https://github.com/simpsonlab
+  twitter: 0
+  number_educ: 2
+  education1: PhD, University of Toronto
   education2: BSc
 
 - name: Ella
