@@ -1,45 +1,22 @@
 - name: Jared Simpson
   photo: jared.png
   info: Principal Investigator, started 2013
-  email: jared.simpson@oicr.on.ca
+  email: jsimpson@oicr.on.ca
   github: https://github.com/jts
   twitter: https://twitter.com/jaredtsimpson
   number_educ: 2
   education1: PhD, University of Cambridge
   education2: BSc, University of British Columbia
 
-- name: Alister D'Costa
-  photo: alister.jpg
-  info: Graduate Student, started 2017
-  email: alister.d'costa@oicr.on.ca
-  github: https://github.com/adcosta17
+- name: Phil Zuzarte
+  photo: PersonGrey.jpg
+  info: Scientific Associate
+  email: pzuzarte@oicr.on.ca
+  github: https://github.com/simpsonlab
   twitter: 0
   number_educ: 2
-  education1: MSc, University of Toronto
-  education2: BSc, University of Waterloo
-
-- name: Ina Anreiter
-  photo: ina.png
-  info: Schmidt Science Fellow, started 2019
-  email: ina.anreiter@oicr.on.ca
-  github: https://github.com/I-Anreiter
-  twitter: https://twitter.com/inanreiter
-  number_educ: 3
-  education1: PhD, University of Toronto
-  education2: MSc, Universidade Nova de Lisboa
-  education3: BSc, Universidade Técnica de Lisboa
-
-- name: Yasamin Nouri Jelyani
-  photo: yasamin.jpg
-  info: Undergraduate Student, Computer Science and Bioinformatics, 2022
-  number_educ: 1
-  education1: BSc, Computer Science, University of Toronto (in progress)
-
-- name: Kevin Gao
-  photo: kevingao.jpg
-  info: Undergraudate Student, Bioinformatics and Computational Biology, 2022
-  number_educ: 1
-  education1: BSc, Computer Science (minor in Mathematics), University of Toronto (in progress)
+  education1: PhD
+  education2: BSc
 
 - name: Ella
   photo: ella.png
